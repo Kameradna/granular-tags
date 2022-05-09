@@ -214,6 +214,7 @@ def mixup_criterion(criterion, pred, y_a, y_b, l):
 
 
 def main(args):
+  print(args.use_amp)
   logger = bit_common.setup_logger(args)
 
   # Lets cuDNN benchmark conv implementations and choose the fastest.
