@@ -73,12 +73,12 @@ class IUXrayDataset(Dataset):#Adapted from NUSdataset and my own work
       return len(self.imgs)
 
 
-def topk(output, target, ks=(1,)):
-  """Returns one boolean vector for each k, whether the target is within the output's top-k."""
-  _, pred = output.topk(max(ks), 1, True, True)
-  pred = pred.t()
-  correct = pred.eq(target.view(1, -1).expand_as(pred))
-  return [correct[:k].max(0)[0] for k in ks]
+# def topk(output, target, ks=(1,)):
+#   """Returns one boolean vector for each k, whether the target is within the output's top-k."""
+#   _, pred = output.topk(max(ks), 1, True, True)
+#   pred = pred.t()
+#   correct = pred.eq(target.view(1, -1).expand_as(pred))
+#   return [correct[:k].max(0)[0] for k in ks]
 
 
 def recycle(iterable):
@@ -155,8 +155,16 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 
   logger.info("Running validation...")
   logger.flush()
+  
+#we will add hamming loss, total full correct loss
+#%above 50% correct
+#True positive rate
+#False negative rates
+#True negative rate
+#False negative rate
+#we want to maximise the correct, so we want to maximise true positive at the expense of false positive, we just want to minimize false negative rate
 
-  all_c, all_top1, all_top5 = [], [], []
+  # all_c, all_top1, all_top5 = [], [], []
   end = time.time()
   for b, (x, y) in enumerate(data_loader):
     with torch.no_grad():
@@ -170,10 +178,16 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
       with chrono.measure("eval fprop") and torch.cuda.amp.autocast(enabled=args.use_amp):
         logits = model(x)
         c = torch.nn.BCEWithLogitsLoss(reduction='none')(logits, y)
-        top1, top5 = topk(logits, y, ks=(1, 5))
-        all_c.extend(c.cpu())  # Also ensures a sync point.
-        all_top1.extend(top1.cpu())
-        all_top5.extend(top5.cpu())
+        #we need to compare logits and y
+        print("logits")
+        print(logits)
+        print('y')
+        print(y)
+        exit()
+        # top1, top5 = topk(logits, y, ks=(1, 5))
+        # all_c.extend(c.cpu())  # Also ensures a sync point.
+        # all_top1.extend(top1.cpu())
+        # all_top5.extend(top5.cpu())
 
     # measure elapsed time
     end = time.time()
