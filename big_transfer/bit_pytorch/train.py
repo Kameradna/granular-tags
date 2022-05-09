@@ -179,11 +179,27 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
         logits = model(x)
         c = torch.nn.BCEWithLogitsLoss(reduction='none')(logits, y)
         #we need to compare logits and y
-        print("logits")
-        print(logits.size())
-        print('y')
-        print(y.size())
-        exit()
+        # print("logits")
+        # print(logits.size())
+        # print('y')
+        # print(y.size())
+        #         logits
+        # torch.Size([32, 4660])
+        # y
+        # torch.Size([32, 4660])
+
+        # exit()
+        zeros = torch.zeros(logits.size())
+        ones = torch.ones(logits.size())
+        sensitivity = 0.5
+        sens_tensor = torch.full(logits.size(),sensitivity)
+
+        preds = torch.ge(logits,sens_tensor)
+        groundtruth = torch.ge(y,sens_tensor)
+        TP = torch.bitwise_and(groundtruth,preds)
+        FP = torch.bitwise_and(groundtruth,torch.bitwise_not(preds))
+        TN = torch.bitwise_and(torch.bitwise_not(groundtruth),torch.bitwise_not(preds))
+        FN = torch.bitwise_and(torch.bitwise_not(groundtruth),preds)
         # top1, top5 = topk(logits, y, ks=(1, 5))
         # all_c.extend(c.cpu())  # Also ensures a sync point.
         # all_top1.extend(top1.cpu())
@@ -273,8 +289,7 @@ def main(args):
     for x, y in recycle(train_loader):
       # measure data loading time, which is spent in the `for` statement.
       chrono._done("load", time.time() - end)
-      print(x.size())
-      exit()
+
       if u.interrupted:
         break
 
