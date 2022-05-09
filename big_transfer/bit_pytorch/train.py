@@ -273,7 +273,8 @@ def main(args):
     for x, y in recycle(train_loader):
       # measure data loading time, which is spent in the `for` statement.
       chrono._done("load", time.time() - end)
-
+      print(y.size())
+      exit()
       if u.interrupted:
         break
 
