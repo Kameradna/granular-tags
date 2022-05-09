@@ -348,7 +348,7 @@ if __name__ == "__main__":
   parser.add_argument("--workers", type=int, default=8,
                       help="Number of background threads used to load data.")
   parser.add_argument("--no-save", dest="save", action="store_false")
-  parser.add_argument("--use-amp", required=True, type=bool,
+  parser.add_argument("--use-amp", dest="use_amp", required=True, type=bool,
                       help="Use Automated Mixed Precision to save potential memory and compute?", default=False)
   parser.add_argument("--annodir", required=True, help="Where are the annotation files to load?")
   main(parser.parse_args())
