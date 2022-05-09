@@ -180,9 +180,9 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
         c = torch.nn.BCEWithLogitsLoss(reduction='none')(logits, y)
         #we need to compare logits and y
         print("logits")
-        print(logits)
+        print(logits.size())
         print('y')
-        print(y)
+        print(y.size())
         exit()
         # top1, top5 = topk(logits, y, ks=(1, 5))
         # all_c.extend(c.cpu())  # Also ensures a sync point.
