@@ -164,7 +164,8 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 #False negative rate
 #we want to maximise the correct, so we want to maximise true positive at the expense of false positive, we just want to minimize false negative rate
 
-  # all_c, all_top1, all_top5 = [], [], []
+  all_c = []
+  tp, fp, tn, fn = [], [], [], []
   end = time.time()
   for b, (x, y) in enumerate(data_loader):
     with torch.no_grad():
@@ -196,22 +197,32 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 
         preds = torch.ge(logits,sens_tensor)
         groundtruth = torch.ge(y,sens_tensor)
-        TP = torch.bitwise_and(groundtruth,preds)
-        FP = torch.bitwise_and(groundtruth,torch.bitwise_not(preds))
-        TN = torch.bitwise_and(torch.bitwise_not(groundtruth),torch.bitwise_not(preds))
-        FN = torch.bitwise_and(torch.bitwise_not(groundtruth),preds)
+        TPn = torch.bitwise_and(groundtruth,preds).t()
+        FPn = torch.bitwise_and(groundtruth,torch.bitwise_not(preds)).t()
+        TNn = torch.bitwise_and(torch.bitwise_not(groundtruth),torch.bitwise_not(preds)).t()
+        FNn = torch.bitwise_and(torch.bitwise_not(groundtruth),preds).t()
         # top1, top5 = topk(logits, y, ks=(1, 5))
         # all_c.extend(c.cpu())  # Also ensures a sync point.
         # all_top1.extend(top1.cpu())
         # all_top5.extend(top5.cpu())
+        all_c.extend(c.cpu())
+        tp.extend(TPn.cpu())
+        fp.extend(FPn.cpu())
+        tn.extend(TNn.cpu())
+        fn.extend(FNn.cpu())
 
     # measure elapsed time
     end = time.time()
 
   model.train()
+  print(tp)
+  print(type(tp))
+  print(tp.size())
   logger.info(f"Validation@{step} loss {np.mean(all_c):.5f}, "
-              f"top1 {np.mean(all_top1):.2%}, "
-              f"top5 {np.mean(all_top5):.2%}")
+              f"TP {np.mean(tp):.2%}, "
+              f"FP {np.mean(fp):.2%}, "
+              f"TN {np.mean(tn):.2%}, "
+              f"FN {np.mean(fn):.2%}")
   logger.flush()
   return all_c, all_top1, all_top5
 
