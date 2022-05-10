@@ -235,6 +235,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   fn_count = np.sum(fn,0)
 
   print(tp_count)
+  print(fp_count)
 
   precision = tp_count/(tp_count+fp_count)
   recall = tp_count/(tp_count+fn_count)
