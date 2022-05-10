@@ -225,16 +225,22 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   # print(tp)
   print(type(tp))
   print(np.shape(tp))
-  tp_count0 = np.sum(tp,0)
-  tp_count = np.sum(tp,1)
-  print(np.shape(tp_count))
+  tp_count = np.sum(tp,0)
+  fp_count = np.sum(fp,0)
+  tn_count = np.sum(tn,0)
+  fn_count = np.sum(fn,0)
+
+  precision = tp_count/(tp_count+fp_count)
+  recall = tp_count/(tp_count+fn_count)
+  accuracy = (tp_count+tn_count)/(tp_count+fp_count+tn_count+fn_count)
+
+  print(np.shape(recall))
   logger.info(f"Validation@{step} loss {np.mean(all_c):.5f}, "
-              f"TP {np.mean(tp):.2%}, "
-              f"FP {np.mean(fp):.2%}, "
-              f"TN {np.mean(tn):.2%}, "
-              f"FN {np.mean(fn):.2%}")
+              f"Mean precision {np.mean(precision):.2%}, "
+              f"Mean recall {np.mean(recall):.2%}, "
+              f"Mean accuracy {np.mean(accuracy):.2%}")
   logger.flush()
-  return all_c, all_top1, all_top5
+  return 0
 
 
 def mixup_data(x, y, l):
