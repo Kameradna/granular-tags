@@ -193,9 +193,9 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
         zeros = torch.zeros(logits.size())
         ones = torch.ones(logits.size())
         sensitivity = 0.5
-        sens_tensor = torch.full(logits.size(),sensitivity)
+        sens_tensor = torch.full(logits.size(),sensitivity).to(device, non_blocking=True)
 
-        preds = torch.ge(logits,sens_tensor).to(device, non_blocking=True)
+        preds = torch.ge(logits,sens_tensor)
         groundtruth = torch.ge(y,sens_tensor)
         TPn = torch.bitwise_and(groundtruth,preds).t()
         FPn = torch.bitwise_and(groundtruth,torch.bitwise_not(preds)).t()
