@@ -242,10 +242,10 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   accuracy = (tp_count+tn_count)/(tp_count+fp_count+tn_count+fn_count)
 
   print(recall)
-  logger.info(f"Validation@{step} loss {np.mean(all_c):.5f}, "
-              f"Mean precision {np.mean(precision):.2%}, "
-              f"Mean recall {np.mean(recall):.2%}, "
-              f"Mean accuracy {np.mean(accuracy):.2%}")
+  logger.info(f"Validation@{step} loss {np.nanmean(all_c):.5f}, "
+              f"Mean precision {np.nanmean(precision):.2%}, "
+              f"Mean recall {np.nanmean(recall):.2%}, "
+              f"Mean accuracy {np.nanmean(accuracy):.2%}")
   logger.flush()
   return 0
 
