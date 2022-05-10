@@ -224,21 +224,23 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 
   model.train()
   # print(tp)
-  print(all_c)
-  print(type(all_c))
-  print(np.shape(all_c))
-  print(type(tp))
-  print(np.shape(tp))
+  # print(all_c)
+  # print(type(all_c))
+  # print(np.shape(all_c))
+  # print(type(tp))
+  # print(np.shape(tp))
   tp_count = np.sum(tp,0)
   fp_count = np.sum(fp,0)
   tn_count = np.sum(tn,0)
   fn_count = np.sum(fn,0)
 
+  print(tp_count)
+
   precision = tp_count/(tp_count+fp_count)
   recall = tp_count/(tp_count+fn_count)
   accuracy = (tp_count+tn_count)/(tp_count+fp_count+tn_count+fn_count)
 
-  print(np.shape(recall))
+  print(recall)
   logger.info(f"Validation@{step} loss {np.mean(all_c):.5f}, "
               f"Mean precision {np.mean(precision):.2%}, "
               f"Mean recall {np.mean(recall):.2%}, "
