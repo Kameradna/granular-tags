@@ -47,7 +47,7 @@ def load_xml(xml_dir): #generates dictionary of lists with keys being docs, list
                 if annotation.infons['semtype'] not in ['patf', 'dsyn', 'neop', 'anab']:
                     print(f"ignoring {annotation.infons[OBSERVATION]}")
                     continue
-                print('Woah')
+                print(f'Woah it is {annotation.infons[OBSERVATION]}')
                 if NEGATION in annotation.infons:
                     doc_label_list.append((category,NEGATIVE))
                 elif UNCERTAINTY in annotation.infons:
