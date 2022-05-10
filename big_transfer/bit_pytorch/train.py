@@ -225,9 +225,9 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   # print(tp)
   print(type(tp))
   print(np.shape(tp))
-  exit()
-
-  t
+  tp_count0 = np.sum(tp,0)
+  tp_count = np.sum(tp,1)
+  print(np.shape(tp_count))
   logger.info(f"Validation@{step} loss {np.mean(all_c):.5f}, "
               f"TP {np.mean(tp):.2%}, "
               f"FP {np.mean(fp):.2%}, "
