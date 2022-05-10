@@ -206,10 +206,10 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
         # all_top1.extend(top1.cpu())
         # all_top5.extend(top5.cpu())
         all_c.extend(c.cpu())
-        tp.extend(TPn.cpu())
-        fp.extend(FPn.cpu())
-        tn.extend(TNn.cpu())
-        fn.extend(FNn.cpu())
+        tp.extend(TPn.numpy().cpu())
+        fp.extend(FPn.numpy().cpu())
+        tn.extend(TNn.numpy().cpu())
+        fn.extend(FNn.numpy().cpu())
 
     # measure elapsed time
     end = time.time()
@@ -217,7 +217,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   model.train()
   print(tp)
   print(type(tp))
-  print(tp.size())
+  print(tp.shape())
   logger.info(f"Validation@{step} loss {np.mean(all_c):.5f}, "
               f"TP {np.mean(tp):.2%}, "
               f"FP {np.mean(fp):.2%}, "
