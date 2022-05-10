@@ -11,7 +11,7 @@ import json
 #adapted radically from the negbio2 label extractor to csv tool
 POSITIVE = 1
 NEGATIVE = 0
-UNCERTAIN = 0.5
+UNCERTAIN = 1
 
 # Misc. constants
 UNCERTAINTY = "uncertainty"
