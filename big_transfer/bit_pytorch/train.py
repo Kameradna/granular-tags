@@ -164,7 +164,6 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 #False negative rate
 #we want to maximise the correct, so we want to maximise true positive at the expense of false positive, we just want to minimize false negative rate
 
-  all_c = []
   first_batch = True
   end = time.time()
   for b, (x, y) in enumerate(data_loader):
@@ -205,14 +204,16 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
         # all_c.extend(c.cpu())  # Also ensures a sync point.
         # all_top1.extend(top1.cpu())
         # all_top5.extend(top5.cpu())
-        all_c.extend(c.cpu())
+        
         if first_batch:
+          all_c = c.cpu().numpy()
           tp = TPn.cpu().numpy()
           fp = FPn.cpu().numpy()
           tn = TNn.cpu().numpy()
           fn = FNn.cpu().numpy()
           first_batch = False
         else: #not the first batch
+          all_c = np.concatenate((all_c, c.cpu().numpy()))
           tp = np.concatenate((tp,TPn.cpu().numpy()))
           fp = np.concatenate((fp,FPn.cpu().numpy()))
           tn = np.concatenate((tn,TNn.cpu().numpy()))
@@ -223,6 +224,9 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 
   model.train()
   # print(tp)
+  print(all_c)
+  print(type(all_c))
+  print(np.shape(all_c))
   print(type(tp))
   print(np.shape(tp))
   tp_count = np.sum(tp,0)
