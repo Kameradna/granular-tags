@@ -165,7 +165,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 #we want to maximise the correct, so we want to maximise true positive at the expense of false positive, we just want to minimize false negative rate
 
   all_c = []
-  tp, fp, tn, fn = None
+  tp, fp, tn, fn = None, None, None, None
   end = time.time()
   for b, (x, y) in enumerate(data_loader):
     with torch.no_grad():
