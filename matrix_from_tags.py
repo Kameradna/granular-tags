@@ -74,7 +74,7 @@ def matrix_from_tags(descriptor_dict):
         print(f'Dumping ordered tags list to {args.save_dir}/unique_tags_list.json')
         json.dump(unique_tags_list, f, indent=4)
 
-    # print(unique_tags_list)
+    print(f'there are {len(unique_tags_list)} unique tags')
     print("Init as vectors of zeroes...")
     descriptor_matrix = descriptor_dict.copy()#copy without reference
     for uid in descriptor_matrix: #init matrix as vectors of zeroes of length the number of unique UMLS terms
