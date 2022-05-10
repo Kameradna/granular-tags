@@ -242,14 +242,31 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   accuracy = (tp_count+tn_count)/(tp_count+fp_count+tn_count+fn_count)
   f1 = 2*(precision*recall)/(precision+recall)
   specificity = tn_count/(tn_count+fp_count)
+  balanced_accuracy = (recall+specificity)/2
 
   print(recall)
   logger.info(f"Validation@{step} loss {np.nanmean(all_c):.5f}, "
+              f"Min precision {np.nanmin(precision):.2%}, "
+              f"Min recall {np.nanmin(recall):.2%}, "
+              f"Min accuracy {np.nanmin(accuracy):.2%}, "
+              f"Min specificity {np.nanmin(specificity):.2%}, "
+              f"Min balanced accuracy {np.nanmin(balanced_accuracy):.2%}, "
+              f"Min F1 score {np.nanmin(f1):.2%}, "
+
               f"Mean precision {np.nanmean(precision):.2%}, "
               f"Mean recall {np.nanmean(recall):.2%}, "
               f"Mean accuracy {np.nanmean(accuracy):.2%}, "
               f"Mean specificity {np.nanmean(specificity):.2%}, "
-              f"Mean F1 score {np.nanmean(f1):.2%}")
+              f"Mean balanced accuracy {np.nanmean(balanced_accuracy):.2%}, "
+              f"Mean F1 score {np.nanmean(f1):.2%}, "
+
+              f"Max precision {np.nanmax(precision):.2%}, "
+              f"Max recall {np.nanmax(recall):.2%}, "
+              f"Max accuracy {np.nanmax(accuracy):.2%}, "
+              f"Max specificity {np.nanmax(specificity):.2%}, "
+              f"Max balanced accuracy {np.nanmax(balanced_accuracy):.2%}, "
+              f"Max F1 score {np.nanmax(f1):.2%}"
+              )
   logger.flush()
   return 0
 
