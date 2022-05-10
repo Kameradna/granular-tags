@@ -215,6 +215,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
           tn = TNn.cpu().numpy()
           fn = FNn.cpu().numpy()
           xor_for_hamming = XORn.cpu().numpy()
+          labelnosum = NOSUMn
           first_batch = False
         else: #not the first batch
           all_c = np.concatenate((all_c, c.cpu().numpy()))
@@ -241,15 +242,16 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 
   print(f'labelnosum should have length 369 and has length {len(labelnosum)}')
   print(f'xor_for_hamming should have length 369 and has length {len(xor_for_hamming)}')
+  
   label_cardinality = np.mean(labelnosum)
-  label_density = np.mean(labelnosum/len(tp,1))
+  label_density = np.mean(labelnosum/np.shape(tp)[1])
   hamming_loss = np.mean(np.mean(xor_for_hamming))
-  hamming_loss2 = (fp_count+fn_count)/(len(tp_count)*len(tp,0))
+  hamming_loss2 = (fp_count+fn_count)/(len(tp_count)*np.shape(tp)[0])
+
+  # jaccard_index
+  # exact_match
   print(hamming_loss)
   print(hamming_loss2)
-  exit()
-  jaccard_index
-  exact_match
 
   print(tp_count)
   print(fp_count)
@@ -282,7 +284,14 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
               f"Max accuracy {np.nanmax(accuracy):.2%}, "
               f"Max specificity {np.nanmax(specificity):.2%}, "
               f"Max balanced accuracy {np.nanmax(balanced_accuracy):.2%}, "
-              f"Max F1 score {np.nanmax(f1):.2%}"
+              f"Max F1 score {np.nanmax(f1):.2%}, \n"
+              
+              f"Label cardinality {label_cardinality:.2%}, "
+              f"Label density {label_density:.2%}, "
+              f"Hamming loss {hamming_loss:.2%}, "
+              f"Hamming loss 2 {hamming_loss2:.2%}, "
+              f"Jaccard index {'FILL'}, "
+              f"Exact match {'FILL'}"
               )
   logger.flush()
   return 0
