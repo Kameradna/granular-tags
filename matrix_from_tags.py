@@ -45,7 +45,7 @@ def load_xml(xml_dir): #generates dictionary of lists with keys being docs, list
                 #     continue #skip categories which are functionally meaningless for us
                 #we want only patf, dsyn, neop and anab ['patf', 'dsyn', 'neop', 'anab']
                 if annotation.infons['semtype'] not in ['patf', 'dsyn', 'neop', 'anab']:
-                    print(f"ignoring {annotation.infons['semtype']}")
+                    print(f"ignoring {annotation.infons[OBSERVATION]}")
                     continue
                 print('Woah')
                 if NEGATION in annotation.infons:
