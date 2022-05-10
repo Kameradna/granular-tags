@@ -165,7 +165,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 #we want to maximise the correct, so we want to maximise true positive at the expense of false positive, we just want to minimize false negative rate
 
   all_c = []
-  tp, fp, tn, fn = [], [], [], []
+  tp, fp, tn, fn = None
   end = time.time()
   for b, (x, y) in enumerate(data_loader):
     with torch.no_grad():
@@ -197,19 +197,25 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 
         preds = torch.ge(logits,sens_tensor)
         groundtruth = torch.ge(y,sens_tensor)
-        TPn = torch.bitwise_and(groundtruth,preds).t()
-        FPn = torch.bitwise_and(groundtruth,torch.bitwise_not(preds)).t()
-        TNn = torch.bitwise_and(torch.bitwise_not(groundtruth),torch.bitwise_not(preds)).t()
-        FNn = torch.bitwise_and(torch.bitwise_not(groundtruth),preds).t()
+        TPn = torch.bitwise_and(groundtruth,preds)
+        FPn = torch.bitwise_and(groundtruth,torch.bitwise_not(preds))
+        TNn = torch.bitwise_and(torch.bitwise_not(groundtruth),torch.bitwise_not(preds))
+        FNn = torch.bitwise_and(torch.bitwise_not(groundtruth),preds)
         # top1, top5 = topk(logits, y, ks=(1, 5))
         # all_c.extend(c.cpu())  # Also ensures a sync point.
         # all_top1.extend(top1.cpu())
         # all_top5.extend(top5.cpu())
         all_c.extend(c.cpu())
-        tp.extend(TPn.cpu().numpy())
-        fp.extend(FPn.cpu().numpy())
-        tn.extend(TNn.cpu().numpy())
-        fn.extend(FNn.cpu().numpy())
+        if tp == None:
+          tp = TPn.cpu().numpy()
+          fp = FPn.cpu().numpy()
+          tn = TNn.cpu().numpy()
+          fn = FNn.cpu().numpy()
+        else: #not the first batch
+          tp = np.concatenate((tp,TPn.cpu().numpy()))
+          fp = np.concatenate((fp,FPn.cpu().numpy()))
+          tn = np.concatenate((tn,TNn.cpu().numpy()))
+          fn = np.concatenate((fn,FNn.cpu().numpy()))
 
     # measure elapsed time
     end = time.time()
@@ -218,6 +224,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   # print(tp)
   print(type(tp))
   print(tp.shape())
+  exit()
   logger.info(f"Validation@{step} loss {np.mean(all_c):.5f}, "
               f"TP {np.mean(tp):.2%}, "
               f"FP {np.mean(fp):.2%}, "
