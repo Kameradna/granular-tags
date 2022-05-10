@@ -165,7 +165,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 #we want to maximise the correct, so we want to maximise true positive at the expense of false positive, we just want to minimize false negative rate
 
   all_c = []
-  first_batch = []
+  first_batch = True
   end = time.time()
   for b, (x, y) in enumerate(data_loader):
     with torch.no_grad():
@@ -211,6 +211,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
           fp = FPn.cpu().numpy()
           tn = TNn.cpu().numpy()
           fn = FNn.cpu().numpy()
+          first_batch = False
         else: #not the first batch
           tp = np.concatenate((tp,TPn.cpu().numpy()))
           fp = np.concatenate((fp,FPn.cpu().numpy()))
