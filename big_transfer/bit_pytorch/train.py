@@ -165,6 +165,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 #we want to maximise the correct, so we want to maximise true positive at the expense of false positive, we just want to minimize false negative rate
 
   first_batch = True
+  labelnosum = []
   end = time.time()
   for b, (x, y) in enumerate(data_loader):
     with torch.no_grad():
@@ -204,6 +205,8 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
         # all_c.extend(c.cpu())  # Also ensures a sync point.
         # all_top1.extend(top1.cpu())
         # all_top5.extend(top5.cpu())
+        NOSUMn = np.sum(groundtruth.cpu().numpy(),1)#summing all positive labels for each sample
+        XORn = torch.bitwise_xor(groundtruth,preds)
         
         if first_batch:
           all_c = c.cpu().numpy()
@@ -211,6 +214,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
           fp = FPn.cpu().numpy()
           tn = TNn.cpu().numpy()
           fn = FNn.cpu().numpy()
+          xor_for_hamming = XORn.cpu().numpy()
           first_batch = False
         else: #not the first batch
           all_c = np.concatenate((all_c, c.cpu().numpy()))
@@ -218,7 +222,8 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
           fp = np.concatenate((fp,FPn.cpu().numpy()))
           tn = np.concatenate((tn,TNn.cpu().numpy()))
           fn = np.concatenate((fn,FNn.cpu().numpy()))
-
+          xor_for_hamming = np.concatenate((xor_for_hamming,XORn.cpu().numpy()))
+          labelnosum = np.concatenate((labelnosum,NOSUMn))
     # measure elapsed time
     end = time.time()
 
@@ -229,10 +234,22 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   # print(np.shape(all_c))
   # print(type(tp))
   # print(np.shape(tp))
-  tp_count = np.sum(tp,0)
+  tp_count = np.sum(tp,0)#sum across all samples
   fp_count = np.sum(fp,0)
   tn_count = np.sum(tn,0)
   fn_count = np.sum(fn,0)
+
+  print(f'labelnosum should have length 369 and has length {len(labelnosum)}')
+  print(f'xor_for_hamming should have length 369 and has length {len(xor_for_hamming)}')
+  label_cardinality = np.mean(labelnosum)
+  label_density = np.mean(labelnosum/len(tp,1))
+  hamming_loss = np.mean(np.mean(xor_for_hamming))
+  hamming_loss2 = (fp_count+fn_count)/(len(tp_count)*len(tp,0))
+  print(hamming_loss)
+  print(hamming_loss2)
+  exit()
+  jaccard_index
+  exact_match
 
   print(tp_count)
   print(fp_count)
