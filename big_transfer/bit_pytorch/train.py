@@ -224,8 +224,10 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   model.train()
   # print(tp)
   print(type(tp))
-  print(tp.shape())
+  print(np.shape(tp))
   exit()
+
+  t
   logger.info(f"Validation@{step} loss {np.mean(all_c):.5f}, "
               f"TP {np.mean(tp):.2%}, "
               f"FP {np.mean(fp):.2%}, "
