@@ -284,7 +284,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
               f"Max balanced accuracy {np.nanmax(balanced_accuracy):.2%}, "
               f"Max F1 score {np.nanmax(f1):.2%}, \n"
               
-              f"Label cardinality {label_cardinality:.1d}, "
+              f"Label cardinality {label_cardinality:.1f}, "
               f"Label density {label_density:.2%}, "
               f"Hamming loss {hamming_mean_loss:.2%}, "
               f"Jaccard index {jaccard_index:.2%}, "
