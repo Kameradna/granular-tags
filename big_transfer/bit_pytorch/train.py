@@ -71,7 +71,7 @@ class IUXrayDataset(Dataset):#Adapted from NUSdataset and my own work
       return img, anno
 
   def __len__(self):
-      return len(self.imgs)
+      return len(self.imgs*len(self.classes))
 
 
 # def topk(output, target, ks=(1,)):
