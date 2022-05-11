@@ -175,6 +175,7 @@ if __name__ == '__main__':
     parser.add_argument('--overwrite', help='Overwrite?', required=False, default=False)
     parser.add_argument('--map_file',help='Where is the file named Indiana projections or similar?')
     parser.add_argument('--split',type=float,help='What percent is training?',required=True)
+    parser.add_argument('--min_unique_tags',help='Delete tags below this threshold.')
     args = parser.parse_args()
     if args.overwrite == False:
         print("I will not overwrite anything.")
