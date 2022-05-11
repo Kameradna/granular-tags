@@ -41,7 +41,7 @@ class IUXrayDataset(Dataset):#Adapted from NUSdataset and my own work
         self.transforms = transforms
         with open(f'{anno_path}/unique_tags_list.json') as f:
           json_data = json.load(f)
-        # print(json_data)
+        print(json_data)
         # print(type(json_data))
         self.classes = json_data
         print(len(self.classes))
@@ -250,7 +250,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 
   # jaccard_index
   # exact_match
-  print(data_loader.classes)
+  print()
   print(hamming_loss)
   print(hamming_loss2)
 
