@@ -260,7 +260,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 
   datastack = np.stack((precision,recall,accuracy,f1,specificity,balanced_accuracy),axis=-1)
   print('precision,recall,accuracy,f1,specificity,balanced_accuracy')
-  print(datastack.tostring())
+  print(datastack)
 
   logger.info(f"Validation@{step} loss {np.nanmean(all_c):.5f}, \n"
               f"Min precision {np.nanmin(precision):.2%}, "
@@ -309,7 +309,7 @@ def mixup_criterion(criterion, pred, y_a, y_b, l):
 
 def main(args):
   logger = bit_common.setup_logger(args)
-  args.use_amp = False
+  args.use_amp = True
   # Lets cuDNN benchmark conv implementations and choose the fastest.
   # Only good if sizes stay the same within the main loop!
   
