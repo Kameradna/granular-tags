@@ -8,7 +8,7 @@ downloading big-transfer models
 run training runs and generate logs
 
 
-labelnosum should have length 369 and has length 353
+<!-- labelnosum should have length 369 and has length 353 -->
 xor_for_hamming should have length 369 and has length 369
 Traceback (most recent call last):
   File "/home/prowe/anaconda3/lib/python3.9/runpy.py", line 197, in _run_module_as_main

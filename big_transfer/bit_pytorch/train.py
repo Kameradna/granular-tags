@@ -246,7 +246,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   label_cardinality = np.mean(labelnosum)
   label_density = np.mean(labelnosum/np.shape(tp)[1])
   hamming_loss = np.mean(np.mean(xor_for_hamming))
-  hamming_loss2 = (fp_count+fn_count)/(len(tp_count)*np.shape(tp)[0])
+  hamming_loss2 = np.mean((fp_count+fn_count)/(len(tp_count)*np.shape(tp)[0]))
 
   # jaccard_index
   # exact_match
@@ -256,7 +256,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   print(tp_count)
   print(fp_count)
 
-  precision = tp_count/(tp_count+fp_count)
+  precision = tp_count/(np.bitwise_add(tp_count+fp_count))
   recall = tp_count/(tp_count+fn_count)
   accuracy = (tp_count+tn_count)/(tp_count+fp_count+tn_count+fn_count)
   f1 = 2*(precision*recall)/(precision+recall)
