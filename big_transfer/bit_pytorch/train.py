@@ -27,7 +27,7 @@ from torch.utils.data import Dataset
 import bit_pytorch.fewshot as fs
 import bit_pytorch.lbtoolbox as lb
 import bit_pytorch.models as models
-import sklearn
+from sklearn.metrics import hamming_loss, jaccard_score
 
 import bit_common
 import bit_hyperrule
@@ -207,8 +207,8 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 
         NOSUMn = np.sum(groundtruth.cpu().numpy(),1)#summing all positive labels for each sample
         
-        HAMn = sklearn.metrics.hamming_loss(groundtruth.cpu().numpy(),preds.cpu().numpy(),None)
-        JACCARDn = sklearn.metrics.jaccard_score(groundtruth.cpu().numpy(),preds.cpu().numpy(),average='samples')
+        HAMn = hamming_loss(groundtruth.cpu().numpy(),preds.cpu().numpy(),None)
+        JACCARDn = jaccard_score(groundtruth.cpu().numpy(),preds.cpu().numpy(),average='samples')
 
         if first_batch:
           all_c = c.cpu().numpy()
@@ -250,7 +250,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   
   label_cardinality = np.mean(labelnosum)
   label_density = np.mean(labelnosum/np.shape(tp)[1])
-  hamming_loss = np.mean(hamming)
+  hamming_mean_loss = np.mean(hamming)
   jaccard_index = np.mean(jaccard)
   exact_match = exact_match/len(tp_count)
 
@@ -296,7 +296,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
               
               f"Label cardinality {label_cardinality:.1d}, "
               f"Label density {label_density:.2%}, "
-              f"Hamming loss {hamming_loss:.2%}, "
+              f"Hamming loss {hamming_mean_loss:.2%}, "
               f"Jaccard index {jaccard_index:.2%}, "
               f"Exact match {exact_match:.2%}"
               )
