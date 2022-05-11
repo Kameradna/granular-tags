@@ -78,7 +78,8 @@ def matrix_from_tags(descriptor_dict):
     print(f'{len(unique_tags_list)} unique tags before truncating...')
     for descriptor in unique_count.keys():
         if unique_count[descriptor] < args.min_unique_tags:
-            print(f'Removing {unique_tags_list.remove(descriptor)} from tag list')
+            unique_tags_list.remove(descriptor)
+            print(f'Removing {descriptor} from tag list')
     print(f'{len(unique_tags_list)} unique tags after truncating...')
     
     with open(f'{args.save_dir}/unique_tags_list.json','w') as f:
