@@ -250,6 +250,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 
   # jaccard_index
   # exact_match
+  print(data_loader.classes)
   print(hamming_loss)
   print(hamming_loss2)
 
