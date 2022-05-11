@@ -197,7 +197,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 
         NOSUMn = np.sum(groundtruth.cpu().numpy(),1)#summing all positive labels for each sample
         
-        HAMn = hamming_loss(groundtruth.cpu().numpy(),preds.cpu().numpy(),None)
+        HAMn = hamming_loss(groundtruth.cpu().numpy(),preds.cpu().numpy())
         JACCARDn = jaccard_score(groundtruth.cpu().numpy(),preds.cpu().numpy(),average='samples')
 
         if first_batch:
