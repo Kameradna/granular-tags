@@ -46,7 +46,7 @@ def load_xml(xml_dir): #generates dictionary of lists with keys being docs, list
                     # print(f'ignoring {category}')
                     continue #skip categories which are functionally meaningless for us
                 # we want only patf, dsyn, neop and anab ['patf', 'dsyn', 'neop', 'anab']
-                if annotation.infons['semtype'] not in ['patf', 'dsyn', 'neop', 'anab']:
+                if annotation.infons['semtype'] not in ['patf', 'dsyn']:#, 'neop', 'anab'
                     print(f"ignoring {annotation.infons[OBSERVATION]}")
                     continue
                 print(f'Woah it is {annotation.infons[OBSERVATION]}')
@@ -63,14 +63,23 @@ def load_xml(xml_dir): #generates dictionary of lists with keys being docs, list
 
 def matrix_from_tags(descriptor_dict):
     unique_tags_list = []
+    unique_count = {}
     print("Generating unique UMLS term list...")
     for uid in descriptor_dict: #for docs with findings, add unique UMLS terms to the list of known UMLS terms
         if descriptor_dict[uid] != []:
             for descriptor,classification in descriptor_dict[uid]:
                 if descriptor not in unique_tags_list:
                     unique_tags_list.append(descriptor)
+                    unique_count[descriptor] = 1
+                else:
+                    unique_count[descriptor] += 1
     
-    print(f'{len(unique_tags_list)} unique tags...')
+    #truncate unique tags by a certain threshold number
+    print(f'{len(unique_tags_list)} unique tags before truncating...')
+    for descriptor in unique_count.keys():
+        if unique_count[descriptor] < args.min_unique_tags:
+            print(f'Removing {unique_tags_list.remove(descriptor)} from tag list')
+    print(f'{len(unique_tags_list)} unique tags after truncating...')
     
     with open(f'{args.save_dir}/unique_tags_list.json','w') as f:
         print(f'Dumping ordered tags list to {args.save_dir}/unique_tags_list.json')
@@ -82,13 +91,15 @@ def matrix_from_tags(descriptor_dict):
     for uid in descriptor_matrix: #init matrix as vectors of zeroes of length the number of unique UMLS terms
         descriptor_matrix[uid] = [0]*len(unique_tags_list)
 
+    #assign known classifications to the corresponding bit in each vector
     largest_condition_sum = 0
     print("Fill with knowns at corresponding locations...")
-    for uid in descriptor_dict: #assign known classifications to the corresponding bit in each vector
+    for uid in descriptor_dict:
         if descriptor_dict[uid] != []:
             for descriptor,classification in descriptor_dict[uid]:
                 # print(descriptor)
-                descriptor_matrix[uid][unique_tags_list.index(descriptor)] = classification
+                if descriptor in unique_tags_list:#if we haven't deleted the descriptor due to it being too few
+                    descriptor_matrix[uid][unique_tags_list.index(descriptor)] = classification
         if sum(descriptor_matrix[uid]) > largest_condition_sum:
             largest_condition_sum = sum(descriptor_matrix[uid])
     print(f'most dense target vector is {largest_condition_sum} dense')

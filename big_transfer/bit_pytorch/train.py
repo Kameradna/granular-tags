@@ -197,6 +197,15 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 
         NOSUMn = np.sum(groundtruth.cpu().numpy(),1)#summing all positive labels for each sample
         
+        #HERES THE PLAN, TICK OFF WHEN DONE AND
+        #FIX hamming and jaccard, we need to lerp through items one at a time and
+        #Multiply training times by no labels
+        #Get results for All, dysn subsets (disease relateds, just dsyn and patf)
+        #Write up
+        #Now work on cutting edge cases
+        #Now work on cutting ultradominant tags
+        #grid search, larger networks
+        #Try get something lol then you can move on to comparisons
         HAMn = hamming_loss(groundtruth.cpu().numpy(),preds.cpu().numpy())
         JACCARDn = jaccard_score(groundtruth.cpu().numpy(),preds.cpu().numpy(),average='samples')
 
@@ -248,9 +257,9 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   balanced_accuracy = (recall+specificity)/2
   print(len(balanced_accuracy))
 
-  label_cardinality = np.mean(labelnosum)
+  label_cardinality = np.mean(labelnosum)#labelnosum has len [validset] like it should
   print(labelnosum)
-  label_density = np.mean(labelnosum)/np.shape(tp)[1]
+  label_density = np.mean(labelnosum)/np.shape(tp)[1] #correct
   print(np.shape(tp)[1])
   hamming_mean_loss = np.mean(hamming)
   print(len(hamming))
