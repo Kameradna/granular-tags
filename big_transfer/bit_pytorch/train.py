@@ -27,6 +27,7 @@ from torch.utils.data import Dataset
 import bit_pytorch.fewshot as fs
 import bit_pytorch.lbtoolbox as lb
 import bit_pytorch.models as models
+import sklearn
 
 import bit_common
 import bit_hyperrule
@@ -165,6 +166,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 #we want to maximise the correct, so we want to maximise true positive at the expense of false positive, we just want to minimize false negative rate
 
   first_batch = True
+  exact_match = 0
   labelnosum = []
   end = time.time()
   for b, (x, y) in enumerate(data_loader):
@@ -190,31 +192,33 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
         # torch.Size([32, 4660])
 
         # exit()
-        zeros = torch.zeros(logits.size())
-        ones = torch.ones(logits.size())
         sensitivity = 0.5
         sens_tensor = torch.full(logits.size(),sensitivity).to(device, non_blocking=True)
 
         preds = torch.ge(logits,sens_tensor)
         groundtruth = torch.ge(y,sens_tensor)
+        if preds == groundtruth:
+          exact_match += 1
+
         TPn = torch.bitwise_and(groundtruth,preds)
         FPn = torch.bitwise_and(groundtruth,torch.bitwise_not(preds))
         TNn = torch.bitwise_and(torch.bitwise_not(groundtruth),torch.bitwise_not(preds))
         FNn = torch.bitwise_and(torch.bitwise_not(groundtruth),preds)
-        # top1, top5 = topk(logits, y, ks=(1, 5))
-        # all_c.extend(c.cpu())  # Also ensures a sync point.
-        # all_top1.extend(top1.cpu())
-        # all_top5.extend(top5.cpu())
+
         NOSUMn = np.sum(groundtruth.cpu().numpy(),1)#summing all positive labels for each sample
-        XORn = torch.bitwise_xor(groundtruth,preds)
         
+        HAMn = sklearn.hamming_loss(groundtruth.cpu().numpy(),preds.cpu().numpy(),None)
+        JACCARDn = sklearn.jaccard_score(groundtruth.cpu().numpy(),preds.cpu().numpy(),average='samples')
+
         if first_batch:
           all_c = c.cpu().numpy()
           tp = TPn.cpu().numpy()
           fp = FPn.cpu().numpy()
           tn = TNn.cpu().numpy()
           fn = FNn.cpu().numpy()
-          xor_for_hamming = XORn.cpu().numpy()
+          hamming = [HAMn]
+          jaccard = [JACCARDn]
+
           labelnosum = NOSUMn
           first_batch = False
         else: #not the first batch
@@ -223,7 +227,8 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
           fp = np.concatenate((fp,FPn.cpu().numpy()))
           tn = np.concatenate((tn,TNn.cpu().numpy()))
           fn = np.concatenate((fn,FNn.cpu().numpy()))
-          xor_for_hamming = np.concatenate((xor_for_hamming,XORn.cpu().numpy()))
+          hamming.append(HAMn)
+          jaccard.append(JACCARDn)
           labelnosum = np.concatenate((labelnosum,NOSUMn))
     # measure elapsed time
     end = time.time()
@@ -245,17 +250,16 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   
   label_cardinality = np.mean(labelnosum)
   label_density = np.mean(labelnosum/np.shape(tp)[1])
-  hamming_loss = np.mean(np.mean(xor_for_hamming))
-  hamming_loss2 = np.mean((fp_count+fn_count)/(len(tp_count)*np.shape(tp)[0]))
+  hamming_loss = np.mean(hamming)
+  jaccard_index = np.mean(jaccard)
+  exact_match = exact_match/len(tp_count)
 
-  # jaccard_index
-  # exact_match
-  print()
   print(hamming_loss)
-  print(hamming_loss2)
 
   print(tp_count)
+  print(len(tp_count))
   print(fp_count)
+  print(len(fp_count))
 
   precision = tp_count/(tp_count+fp_count)
   recall = tp_count/(tp_count+fn_count)
@@ -264,7 +268,10 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   specificity = tn_count/(tn_count+fp_count)
   balanced_accuracy = (recall+specificity)/2
 
-  print(recall)
+  datastack = np.stack((precision,recall,accuracy,f1,specificity,balanced_accuracy),axis=-1)
+  print('precision,recall,accuracy,f1,specificity,balanced_accuracy')
+  print(datastack.tostring())
+
   logger.info(f"Validation@{step} loss {np.nanmean(all_c):.5f}, \n"
               f"Min precision {np.nanmin(precision):.2%}, "
               f"Min recall {np.nanmin(recall):.2%}, "
@@ -287,12 +294,11 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
               f"Max balanced accuracy {np.nanmax(balanced_accuracy):.2%}, "
               f"Max F1 score {np.nanmax(f1):.2%}, \n"
               
-              f"Label cardinality {label_cardinality:.2%}, "
+              f"Label cardinality {label_cardinality:.1d}, "
               f"Label density {label_density:.2%}, "
               f"Hamming loss {hamming_loss:.2%}, "
-              f"Hamming loss 2 {hamming_loss2:.2%}, "
-              f"Jaccard index {'FILL'}, "
-              f"Exact match {'FILL'}"
+              f"Jaccard index {jaccard_index:.2%}, "
+              f"Exact match {exact_match:.2%}"
               )
   logger.flush()
   return 0

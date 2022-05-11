@@ -24,9 +24,11 @@ def category_test(category):#return bool for goodness
     
     #for simplicity we will completely ignore some pretty random categories (not for final submission)
     #when I finetune the UMLS term extraction process this should be fine to delete
-    for item in category.split():
-        if any(chr.isdigit() or chr == '^' for chr in item): #if any numeric present
-            return False
+    if category == 'Intrauterine growth restriction, metaphyseal dysplasia, adrenal hypoplasia congenita, and genital anomaly syndrome':
+        return False
+    # for item in category.split():
+    #     if any(chr.isdigit() or chr == '^' for chr in item): #if any numeric present
+    #         return False
     return True
 
 def load_xml(xml_dir): #generates dictionary of lists with keys being docs, lists being lists of (UMLS terms, negbio finding) tuple pairs
@@ -40,10 +42,10 @@ def load_xml(xml_dir): #generates dictionary of lists with keys being docs, list
         for p in doc.passages:
             for annotation in p.annotations:
                 category = annotation.infons[OBSERVATION]
-                # if category_test(category) == False:
-                #     # print(f'ignoring {category}')
-                #     continue #skip categories which are functionally meaningless for us
-                #we want only patf, dsyn, neop and anab ['patf', 'dsyn', 'neop', 'anab']
+                if category_test(category) == False:
+                    # print(f'ignoring {category}')
+                    continue #skip categories which are functionally meaningless for us
+                # we want only patf, dsyn, neop and anab ['patf', 'dsyn', 'neop', 'anab']
                 if annotation.infons['semtype'] not in ['patf', 'dsyn', 'neop', 'anab']:
                     print(f"ignoring {annotation.infons[OBSERVATION]}")
                     continue
