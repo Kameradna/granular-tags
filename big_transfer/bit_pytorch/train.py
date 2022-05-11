@@ -180,7 +180,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
       # compute output, measure accuracy and record loss.
       with chrono.measure("eval fprop") and torch.cuda.amp.autocast(enabled=args.use_amp):
         logits = model(x)
-        c = torch.nn.BCEWithLogitsLoss(reduction='none')(logits, y)
+        c = torch.nn.BCEWithLogitsLoss()(logits, y)
         #we need to compare logits and y
         sensitivity = 0.5
         sens_tensor = torch.full(logits.size(),sensitivity).to(device, non_blocking=True)
@@ -235,24 +235,28 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   tn_count = np.sum(tn,0)
   fn_count = np.sum(fn,0)
 
-  print(tp_count)
-  print(len(tp_count))
-  print(fp_count)
-  print(len(fp_count))
-
   precision = tp_count/(tp_count+fp_count)
+  print(len(precision))
   recall = tp_count/(tp_count+fn_count)
+  print(len(recall))
   accuracy = (tp_count+tn_count)/(tp_count+fp_count+tn_count+fn_count)
+  print(len(accuracy))
   f1 = 2*(precision*recall)/(precision+recall)
+  print(len(f1))
   specificity = tn_count/(tn_count+fp_count)
+  print(len(specificity))
   balanced_accuracy = (recall+specificity)/2
+  print(len(balanced_accuracy))
 
-  print(f'labelnosum should have length 369 and has length {len(labelnosum)}')
-  
   label_cardinality = np.mean(labelnosum)
-  label_density = np.mean(labelnosum/np.shape(tp)[1])
+  print(labelnosum)
+  label_density = np.mean(labelnosum)/np.shape(tp)[1]
+  print(np.shape(tp)[1])
   hamming_mean_loss = np.mean(hamming)
+  print(len(hamming))
   jaccard_index = np.mean(jaccard)
+  print(len(jaccard))
+  print(exact_match)
   exact_match = exact_match/len(tp_count)
 
   print(hamming_mean_loss)
