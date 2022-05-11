@@ -182,16 +182,6 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
         logits = model(x)
         c = torch.nn.BCEWithLogitsLoss(reduction='none')(logits, y)
         #we need to compare logits and y
-        # print("logits")
-        # print(logits.size())
-        # print('y')
-        # print(y.size())
-        #         logits
-        # torch.Size([32, 4660])
-        # y
-        # torch.Size([32, 4660])
-
-        # exit()
         sensitivity = 0.5
         sens_tensor = torch.full(logits.size(),sensitivity).to(device, non_blocking=True)
 
@@ -245,17 +235,6 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   tn_count = np.sum(tn,0)
   fn_count = np.sum(fn,0)
 
-  print(f'labelnosum should have length 369 and has length {len(labelnosum)}')
-  print(f'xor_for_hamming should have length 369 and has length {len(xor_for_hamming)}')
-  
-  label_cardinality = np.mean(labelnosum)
-  label_density = np.mean(labelnosum/np.shape(tp)[1])
-  hamming_mean_loss = np.mean(hamming)
-  jaccard_index = np.mean(jaccard)
-  exact_match = exact_match/len(tp_count)
-
-  print(hamming_loss)
-
   print(tp_count)
   print(len(tp_count))
   print(fp_count)
@@ -267,6 +246,17 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   f1 = 2*(precision*recall)/(precision+recall)
   specificity = tn_count/(tn_count+fp_count)
   balanced_accuracy = (recall+specificity)/2
+
+  print(f'labelnosum should have length 369 and has length {len(labelnosum)}')
+  
+  label_cardinality = np.mean(labelnosum)
+  label_density = np.mean(labelnosum/np.shape(tp)[1])
+  hamming_mean_loss = np.mean(hamming)
+  jaccard_index = np.mean(jaccard)
+  exact_match = exact_match/len(tp_count)
+
+  print(hamming_mean_loss)
+
 
   datastack = np.stack((precision,recall,accuracy,f1,specificity,balanced_accuracy),axis=-1)
   print('precision,recall,accuracy,f1,specificity,balanced_accuracy')
