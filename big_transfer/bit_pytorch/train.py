@@ -256,7 +256,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   print(tp_count)
   print(fp_count)
 
-  precision = tp_count/(np.bitwise_add(tp_count+fp_count))
+  precision = tp_count/(tp_count+fp_count)
   recall = tp_count/(tp_count+fn_count)
   accuracy = (tp_count+tn_count)/(tp_count+fp_count+tn_count+fn_count)
   f1 = 2*(precision*recall)/(precision+recall)
