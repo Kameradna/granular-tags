@@ -197,7 +197,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 
         preds = torch.ge(logits,sens_tensor)
         groundtruth = torch.ge(y,sens_tensor)
-        if preds == groundtruth:
+        if torch.equal(preds,groundtruth):
           exact_match += 1
 
         TPn = torch.bitwise_and(groundtruth,preds)
