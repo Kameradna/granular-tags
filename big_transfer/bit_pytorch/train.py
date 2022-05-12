@@ -66,9 +66,9 @@ class IUXrayDataset(Dataset):#Adapted from NUSdataset and my own work
         print(each_neg)
         print(len(each_neg))
         each_pos = [0.1 if each_pos[x] == 0 else each_pos[x] for x in range(len(each_pos))]#really janky workaround for my random sampling of the training set having 0 positive examples of a class
-        pos_weights = [each_neg[x]/each_pos[x] for x in range(len(each_pos))]
-        print(pos_weights)
-        print(len(pos_weights))
+        self.pos_weights = [each_neg[x]/each_pos[x] for x in range(len(each_pos))]
+        print(self.pos_weights)
+        print(len(self.pos_weights))
         print('tick')
         self.data_path = data_path
         for img in range(len(self.imgs)):
@@ -355,7 +355,7 @@ def main(args):
 
   model.train()
   mixup = bit_hyperrule.get_mixup(len(train_set))
-  cri = torch.nn.BCEWithLogitsLoss(reduction='none').to(device)
+  cri = torch.nn.BCEWithLogitsLoss(reduction='none',pos_weights=train_set.pos_weights).to(device)
 
   logger.info("Starting training!")
   chrono = lb.Chrono()
