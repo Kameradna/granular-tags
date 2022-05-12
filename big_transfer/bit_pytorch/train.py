@@ -365,7 +365,7 @@ def main(args):
         y = y.to(device, non_blocking=True)
 
         # Update learning-rate, including stop training if over.
-        lr = bit_hyperrule.get_lr(step, len(train_set), args.base_lr)
+        lr = bit_hyperrule.get_lr(step, len(train_set)*10, args.base_lr)
         if lr is None:
           break
         for param_group in optim.param_groups:
