@@ -355,7 +355,7 @@ def main(args):
 
   model.train()
   mixup = bit_hyperrule.get_mixup(len(train_set))
-  cri = torch.nn.BCEWithLogitsLoss(reduction='none',pos_weights=train_set.pos_weights).to(device)
+  cri = torch.nn.BCEWithLogitsLoss(reduction='none',pos_weight=train_set.pos_weights).to(device)
 
   logger.info("Starting training!")
   chrono = lb.Chrono()
