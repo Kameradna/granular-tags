@@ -57,10 +57,15 @@ class IUXrayDataset(Dataset):#Adapted from NUSdataset and my own work
         # print(self.imgs)
         self.annos = list(json_data.values())
         print(type(self.annos))
-        pos_weights = [0]*len(self.annos)
+        each_pos = [0]*len(self.annos)
         for sample in range(len(self.annos)):
-          pos_weights = [pos_weights[x]+self.annos[sample][x] for x in range(len(self.annos[sample]))]
-        print(self.annos[0])
+          each_pos = [each_pos[x]+self.annos[sample][x] for x in range(len(each_pos))]
+        each_neg = [len(self.imgs)-each_pos[x] for x in range(len(each_pos))]
+        print(each_pos)
+        print(len(each_pos))
+        print(each_neg)
+        print(len(each_neg))
+        pos_weights = [each_neg[x]/each_pos[x] for x in range(len(each_pos))]
         print(pos_weights)
         print(len(pos_weights))
         print('tick')
