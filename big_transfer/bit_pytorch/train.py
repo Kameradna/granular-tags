@@ -404,8 +404,7 @@ def main(args):
       # Accumulate grads
       with chrono.measure("grads"):
         # scaler.scale(c / args.batch_split).backward()#MY ADDITION
-        for loss_item in c:
-          loss_item.backward()
+        c.backward(torch.ones_like(c))
         accum_steps += 1
 
       accstep = f" ({accum_steps}/{args.batch_split})" if args.batch_split > 1 else ""
