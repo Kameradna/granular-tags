@@ -381,7 +381,7 @@ def main(args):
             c = mixup_criterion(cri, logits, y_a, y_b, mixup_l)
           else:
             c = cri(logits, y)
-          c_num = float(c.data.cpu().numpy())  # Also ensures a sync point.
+          c_num = float(np.mean(c.data.cpu().numpy()))  # Also ensures a sync point.
 
       # Accumulate grads
       with chrono.measure("grads"):
