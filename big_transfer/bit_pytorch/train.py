@@ -352,6 +352,8 @@ def main(args):
 
   model = model.to(device)
   optim.zero_grad()
+  step_name = 'start'
+  run_eval(model, valid_loader, device, chrono, logger, args, step_name, train_set.pos_weights)
 
   model.train()
   mixup = bit_hyperrule.get_mixup(len(train_set))
