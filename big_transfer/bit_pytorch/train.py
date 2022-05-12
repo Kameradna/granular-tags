@@ -187,7 +187,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
       chrono._done("eval load", time.time() - end)
 
       # compute output, measure accuracy and record loss.
-      with chrono.measure("eval fprop") and torch.cuda.amp.autocast(enabled=args.use_amp):
+      with chrono.measure("eval fprop"):
         logits = model(x)
         c = torch.nn.BCEWithLogitsLoss()(logits, y)
         #we need to compare logits and y
@@ -296,12 +296,12 @@ def mixup_criterion(criterion, pred, y_a, y_b, l):
 
 def main(args):
   logger = bit_common.setup_logger(args)
-  args.use_amp = True
+  use_amp = True
   # Lets cuDNN benchmark conv implementations and choose the fastest.
   # Only good if sizes stay the same within the main loop!
   
   torch.backends.cudnn.benchmark = True
-  scaler = torch.cuda.amp.GradScaler(enabled=args.use_amp)
+  scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
 
   device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
   logger.info(f"Going to train on {device}")
@@ -342,7 +342,7 @@ def main(args):
 
   model.train()
   mixup = bit_hyperrule.get_mixup(len(train_set))
-  cri = torch.nn.BCEWithLogitsLoss().to(device)
+  cri = torch.nn.BCEWithLogitsLoss(reduction='none').to(device)
 
   logger.info("Starting training!")
   chrono = lb.Chrono()
@@ -359,7 +359,7 @@ def main(args):
         break
 
 
-      with torch.cuda.amp.autocast(enabled=args.use_amp): #MY ADDITION
+      with torch.cuda.amp.autocast(enabled=use_amp): #MY ADDITION
         # Schedule sending to GPU(s)
         x = x.to(device, non_blocking=True)
         y = y.to(device, non_blocking=True)
