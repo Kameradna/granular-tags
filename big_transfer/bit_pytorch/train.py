@@ -249,7 +249,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   print('precision,recall,accuracy,f1,specificity,balanced_accuracy')
   print(datastack)
 
-  logger.info(f"Validation@{step} loss {np.nanmean(all_c):.5f}, \n"
+  logger.info(f"Validation@{step} loss {np.nanmean(loss):.5f}, \n"
               f"Min precision {np.nanmin(precision):.2%}, "
               f"Min recall {np.nanmin(recall):.2%}, "
               f"Min accuracy {np.nanmin(accuracy):.2%}, "
