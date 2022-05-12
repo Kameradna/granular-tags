@@ -244,6 +244,11 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   print(f'New hamming {hamming_new}')
   # exact_match = exact_match/len(tp_count)
 
+  naive_accuracy = 1-label_density
+  #mapping accuracy onto 0:1 for naive_accuracy:1
+  
+
+
 
   datastack = np.stack((precision,recall,accuracy,f1,specificity,balanced_accuracy),axis=-1)
   print('precision,recall,accuracy,f1,specificity,balanced_accuracy')
