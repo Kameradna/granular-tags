@@ -59,7 +59,7 @@ class IUXrayDataset(Dataset):#Adapted from NUSdataset and my own work
         print(type(self.annos))
         each_pos = [0]*len(self.annos)
         for sample in range(len(self.annos)):
-          each_pos = [each_pos[x]+self.annos[sample][x] for x in range(len(each_pos))]
+          each_pos = [each_pos[x]+self.annos[sample][x] for x in range(len(each_pos[sample]))]
         each_neg = [len(self.imgs)-each_pos[x] for x in range(len(each_pos))]
         print(each_pos)
         print(len(each_pos))
