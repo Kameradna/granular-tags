@@ -301,7 +301,7 @@ def main(args):
   # Only good if sizes stay the same within the main loop!
   
   torch.backends.cudnn.benchmark = True
-  scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+  # scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
 
   device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
   logger.info(f"Going to train on {device}")
@@ -385,7 +385,8 @@ def main(args):
 
       # Accumulate grads
       with chrono.measure("grads"):
-        scaler.scale(c / args.batch_split).backward()#MY ADDITION
+        # scaler.scale(c / args.batch_split).backward()#MY ADDITION
+        c.backward()
         accum_steps += 1
 
       accstep = f" ({accum_steps}/{args.batch_split})" if args.batch_split > 1 else ""
@@ -395,9 +396,9 @@ def main(args):
       # Update params
       if accum_steps == args.batch_split:
         with chrono.measure("update"):
-          scaler.step(optim)#MY ADDITION
-          scaler.update()#MY ADDITION
-          # optim.step()
+          optim.step()
+          # scaler.step(optim)#MY ADDITION
+          # scaler.update()#MY ADDITION
           optim.zero_grad(set_to_none=True)#my edit
         step += 1
         accum_steps = 0
