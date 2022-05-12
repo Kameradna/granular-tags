@@ -163,7 +163,7 @@ def mktrainval(args, logger):
   return train_set, valid_set, train_loader, valid_loader
 
 
-def run_eval(model, data_loader, device, chrono, logger, args, step):
+def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights):
   # switch to evaluate mode
   model.eval()
 
@@ -202,7 +202,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
       # compute output, measure accuracy and record loss.
       with chrono.measure("eval fprop"):
         logits = model(x)
-        c = torch.nn.BCEWithLogitsLoss(pos_weights=train_set.pos_weights)(logits, y)
+        c = torch.nn.BCEWithLogitsLoss(pos_weight=pos_weights)(logits, y)
         #we need to compare logits and y
         sensitivity = 0.5
         sens_tensor = torch.full(logits.size(),sensitivity).to(device, non_blocking=True)
@@ -420,7 +420,7 @@ def main(args):
 
         # Run evaluation and save the model.
         if args.eval_every and step % args.eval_every == 0:
-          run_eval(model, valid_loader, device, chrono, logger, args, step)
+          run_eval(model, valid_loader, device, chrono, logger, args, step, train_set.pos_weights)
           if args.save:
             torch.save({
                 "step": step,
@@ -431,7 +431,8 @@ def main(args):
       end = time.time()
 
     # Final eval at end of training.
-    run_eval(model, valid_loader, device, chrono, logger, args, step='end')
+    step_name = 'end'
+    run_eval(model, valid_loader, device, chrono, logger, args, step_name, train_set.pos_weights)
 
   logger.info(f"Timings:\n{chrono}")
 
