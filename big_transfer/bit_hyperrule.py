@@ -15,7 +15,7 @@
 def get_resolution(original_resolution):
   """Takes (H,W) and returns (precrop, crop)."""
   area = original_resolution[0] * original_resolution[1]
-  return (160, 128) if area < 96*96 else (2048,2048)#(512, 480)
+  return (160, 128) if area < 96*96 else (1000,1000)#(512, 480)
 
 
 known_dataset_sizes = {
