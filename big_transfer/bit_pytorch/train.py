@@ -223,9 +223,13 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 
   model.train()
   tp_count = np.sum(tp)#sum across all samples
+  print(tp_count)
   fp_count = np.sum(fp)
+  print(fp_count)
   tn_count = np.sum(tn)
+  print(tn_count)
   fn_count = np.sum(fn)
+  print(fn_count)
 
   #all the normal formulas, now on the sum of all tp and tn etc over all samples
   precision = tp_count/(tp_count+fp_count)
@@ -254,30 +258,16 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   print('precision,recall,accuracy,f1,specificity,balanced_accuracy')
   print(datastack)
 
-  logger.info(f"Validation@{step} loss {np.nanmean(loss):.5f}, \n"
-              f"Min precision {np.nanmin(precision):.2%}, "
-              f"Min recall {np.nanmin(recall):.2%}, "
-              f"Min accuracy {np.nanmin(accuracy):.2%}, "
-              f"Min specificity {np.nanmin(specificity):.2%}, "
-              f"Min balanced accuracy {np.nanmin(balanced_accuracy):.2%}, "
-              f"Min F1 score {np.nanmin(f1):.2%}, \n"
+  logger.info(f"Mean precision {precision:.2%}, "
+              f"Mean recall {recall:.2%}, "
+              f"Mean accuracy {accuracy:.2%}, "
+              f"Mean specificity {specificity:.2%}, "
+              f"Mean balanced accuracy {balanced_accuracy:.2%}, "
+              f"Mean F1 score {f1:.2%}, \n"
 
-              f"Mean precision {np.nanmean(precision):.2%}, "
-              f"Mean recall {np.nanmean(recall):.2%}, "
-              f"Mean accuracy {np.nanmean(accuracy):.2%}, "
-              f"Mean specificity {np.nanmean(specificity):.2%}, "
-              f"Mean balanced accuracy {np.nanmean(balanced_accuracy):.2%}, "
-              f"Mean F1 score {np.nanmean(f1):.2%}, \n"
-
-              f"Max precision {np.nanmax(precision):.2%}, "
-              f"Max recall {np.nanmax(recall):.2%}, "
-              f"Max accuracy {np.nanmax(accuracy):.2%}, "
-              f"Max specificity {np.nanmax(specificity):.2%}, "
-              f"Max balanced accuracy {np.nanmax(balanced_accuracy):.2%}, "
-              f"Max F1 score {np.nanmax(f1):.2%}, \n"
-              
               f"Label cardinality {label_cardinality:.2f}, "
               f"Label density {label_density:.2%}, "
+              f"Naive accuracy {naive_accuracy:.2%},"
               f"Hamming loss {hamming_mean_loss:.2%}, "
               # f"Jaccard index {jaccard_index:.2%}, "
               f"Adjusted accuracy {adjusted_accuracy:.2%}, "
