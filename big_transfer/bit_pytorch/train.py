@@ -279,7 +279,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
               f"Label cardinality {label_cardinality:.2f}, "
               f"Label density {label_density:.2%}, "
               f"Hamming loss {hamming_mean_loss:.2%}, "
-              f"Jaccard index {jaccard_index:.2%}, "
+              # f"Jaccard index {jaccard_index:.2%}, "
               f"Adjusted accuracy {adjusted_accuracy:.2%}, "
               f"Exact match {exact_match:.1f}"
               )
