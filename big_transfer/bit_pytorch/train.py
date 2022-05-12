@@ -222,13 +222,13 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 
   model.train()
   tp_count = np.sum(tp)#sum across all samples
-  # print(tp_count)
+  print(tp_count)
   fp_count = np.sum(fp)
-  # print(fp_count)
+  print(fp_count)
   tn_count = np.sum(tn)
-  # print(tn_count)
+  print(tn_count)
   fn_count = np.sum(fn)
-  # print(fn_count)
+  print(fn_count)
 
   #all the normal formulas, now on the sum of all tp and tn etc over all samples
   precision = tp_count/(tp_count+fp_count)
