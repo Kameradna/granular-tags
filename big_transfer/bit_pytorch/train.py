@@ -213,6 +213,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 
         labelsum.append(np.sum(groundtruth.cpu().numpy()))#summing all positive labels for each sample
         label_number = len(groundtruth.cpu().numpy())
+        print(groundtruth.cpu().numpy())
         hamming.append(hamming_loss(groundtruth.cpu().numpy(),preds.cpu().numpy()))#list of the hamming losses per sample
         groundtruthlist.append(groundtruth.cpu().numpy())
         predslist.append(preds.cpu().numpy())
@@ -242,7 +243,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   print(len(labelsum))
   label_cardinality = np.mean(labelsum)#labelnosum has len [validset] like it should
   print(label_number)
-  label_density = np.mean(labelsum)/label_number #correct
+  label_density = label_cardinality/label_number #correct
   print(hamming)
   print(len(hamming))
   hamming_mean_loss = np.mean(hamming)
