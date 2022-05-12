@@ -222,13 +222,13 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 
   model.train()
   tp_count = np.sum(tp)#sum across all samples
-  print(tp_count)
+  # print(tp_count)
   fp_count = np.sum(fp)
-  print(fp_count)
+  # print(fp_count)
   tn_count = np.sum(tn)
-  print(tn_count)
+  # print(tn_count)
   fn_count = np.sum(fn)
-  print(fn_count)
+  # print(fn_count)
 
   #all the normal formulas, now on the sum of all tp and tn etc over all samples
   precision = tp_count/(tp_count+fp_count)
@@ -238,25 +238,25 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   specificity = tn_count/(tn_count+fp_count)
   balanced_accuracy = (recall+specificity)/2
 
-  print(labelsum)
-  print(len(labelsum))
+  # print(labelsum)
+  # print(len(labelsum))
   label_cardinality = np.mean(labelsum)#labelnosum has len [validset] like it should
-  print(label_number)
+  # print(label_number)
   label_density = label_cardinality/label_number #correct
-  print(hamming)
-  print(len(hamming))
+  # print(hamming)
+  # print(len(hamming))
   hamming_mean_loss = np.mean(hamming)
   # jaccard_index = jaccard_score(groundtruthlist,predslist)
   # hamming_new = hamming_loss(groundtruthlist,predslist)
   # print(f'New hamming {hamming_new}')
   # exact_match = exact_match/len(tp_count)
 
-  print(label_density)
+  # print(label_density)
   naive_accuracy = 1-label_density
-  print(naive_accuracy)
+  # print(naive_accuracy)
   #mapping accuracy onto 0:1 for naive_accuracy:1
   adjusted_accuracy = (accuracy - naive_accuracy)/(1-naive_accuracy)
-  print(adjusted_accuracy)
+  # print(adjusted_accuracy)
 
   datastack = np.stack((precision,recall,accuracy,f1,specificity,balanced_accuracy),axis=-1)
   print('precision,recall,accuracy,f1,specificity,balanced_accuracy')
