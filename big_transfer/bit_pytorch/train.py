@@ -168,8 +168,18 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   first_batch = True
   exact_match = 0
   labelnosum = []
+  hamming = []
+  groundtruthlist = []
+  predslist = []
+  labelsum = []
+  tp = []
+  fp = []
+  tn = []
+  fn = []
+  loss = []
+
   end = time.time()
-  for b, (x, y) in enumerate(data_loader):
+  for b, (x, y) in enumerate(data_loader):#should be elements of size 1,len(tags)
     with torch.no_grad():
       x = x.to(device, non_blocking=True)
       y = y.to(device, non_blocking=True)
@@ -180,95 +190,59 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
       # compute output, measure accuracy and record loss.
       with chrono.measure("eval fprop") and torch.cuda.amp.autocast(enabled=args.use_amp):
         logits = model(x)
-        c = torch.nn.BCEWithLogitsLoss(reduction='none')(logits, y)
+        c = torch.nn.BCEWithLogitsLoss()(logits, y)
         #we need to compare logits and y
         sensitivity = 0.5
         sens_tensor = torch.full(logits.size(),sensitivity).to(device, non_blocking=True)
 
         preds = torch.ge(logits,sens_tensor)
-        groundtruth = torch.ge(y,sens_tensor)
+        groundtruth = torch.ge(y,sens_tensor)#translates y to tensor
         if torch.equal(preds,groundtruth):
           exact_match += 1
 
-        TPn = torch.bitwise_and(groundtruth,preds)
-        FPn = torch.bitwise_and(groundtruth,torch.bitwise_not(preds))
-        TNn = torch.bitwise_and(torch.bitwise_not(groundtruth),torch.bitwise_not(preds))
-        FNn = torch.bitwise_and(torch.bitwise_not(groundtruth),preds)
+        TPn = np.sum(torch.bitwise_and(groundtruth,preds).cpu().numpy())
+        FPn = np.sum(torch.bitwise_and(groundtruth,torch.bitwise_not(preds)).cpu().numpy())
+        TNn = np.sum(torch.bitwise_and(torch.bitwise_not(groundtruth),torch.bitwise_not(preds)).cpu().numpy())
+        FNn = np.sum(torch.bitwise_and(torch.bitwise_not(groundtruth),preds).cpu().numpy())
 
-        NOSUMn = np.sum(groundtruth.cpu().numpy(),1)#summing all positive labels for each sample
+        tp.append(TPn)
+        fp.append(FPn)
+        tn.append(TNn)
+        fn.append(FNn)
+
+        loss.append(c.cpu().numpy())
+
+        labelsum.append(np.sum(groundtruth.cpu().numpy()))#summing all positive labels for each sample
+        label_number = len(groundtruth.cpu().numpy())
+        hamming.append(hamming_loss(groundtruth.cpu().numpy(),preds.cpu().numpy()))#list of the hamming losses per sample
+        groundtruthlist.append(groundtruth.cpu().numpy())
+        predslist.append(preds.cpu().numpy())
         
-        #HERES THE PLAN, TICK OFF WHEN DONE AND
-        #FIX hamming and jaccard, we need to lerp through items one at a time and
-        #Multiply training times by no labels
-        #Get results for All, dysn subsets (disease relateds, just dsyn and patf)
-        #Write up
-        #Now work on cutting edge cases
-        #Now work on cutting ultradominant tags
-        #grid search, larger networks
-        #Try get something lol then you can move on to comparisons
-        HAMn = hamming_loss(groundtruth.cpu().numpy(),preds.cpu().numpy())
-        JACCARDn = jaccard_score(groundtruth.cpu().numpy(),preds.cpu().numpy(),average='samples')
-
-        if first_batch:
-          all_c = c.cpu().numpy()
-          tp = TPn.cpu().numpy()
-          fp = FPn.cpu().numpy()
-          tn = TNn.cpu().numpy()
-          fn = FNn.cpu().numpy()
-          hamming = [HAMn]
-          jaccard = [JACCARDn]
-
-          labelnosum = NOSUMn
-          first_batch = False
-        else: #not the first batch
-          all_c = np.concatenate((all_c, c.cpu().numpy()))
-          tp = np.concatenate((tp,TPn.cpu().numpy()))
-          fp = np.concatenate((fp,FPn.cpu().numpy()))
-          tn = np.concatenate((tn,TNn.cpu().numpy()))
-          fn = np.concatenate((fn,FNn.cpu().numpy()))
-          hamming.append(HAMn)
-          jaccard.append(JACCARDn)
-          labelnosum = np.concatenate((labelnosum,NOSUMn))
     # measure elapsed time
     end = time.time()
 
   model.train()
-  # print(tp)
-  # print(all_c)
-  # print(type(all_c))
-  # print(np.shape(all_c))
-  # print(type(tp))
-  # print(np.shape(tp))
-  tp_count = np.sum(tp,0)#sum across all samples
-  fp_count = np.sum(fp,0)
-  tn_count = np.sum(tn,0)
-  fn_count = np.sum(fn,0)
+  tp_count = np.sum(tp)#sum across all samples
+  fp_count = np.sum(fp)
+  tn_count = np.sum(tn)
+  fn_count = np.sum(fn)
 
+  #all the normal formulas, now on the sum of all tp and tn etc over all samples
   precision = tp_count/(tp_count+fp_count)
-  print(len(precision))
   recall = tp_count/(tp_count+fn_count)
-  print(len(recall))
   accuracy = (tp_count+tn_count)/(tp_count+fp_count+tn_count+fn_count)
-  print(len(accuracy))
   f1 = 2*(precision*recall)/(precision+recall)
-  print(len(f1))
   specificity = tn_count/(tn_count+fp_count)
-  print(len(specificity))
   balanced_accuracy = (recall+specificity)/2
-  print(len(balanced_accuracy))
+
 
   label_cardinality = np.mean(labelnosum)#labelnosum has len [validset] like it should
-  print(labelnosum)
-  label_density = np.mean(labelnosum)/np.shape(tp)[1] #correct
-  print(np.shape(tp)[1])
+  label_density = np.mean(labelnosum)/label_number #correct
   hamming_mean_loss = np.mean(hamming)
-  print(len(hamming))
-  jaccard_index = np.mean(jaccard)
-  print(len(jaccard))
-  print(exact_match)
-  exact_match = exact_match/len(tp_count)
-
-  print(hamming_mean_loss)
+  jaccard_index = jaccard_score(groundtruthlist,predslist)
+  hamming_new = hamming_loss(groundtruthlist,predslist)
+  print(f'New hamming {hamming_new}')
+  # exact_match = exact_match/len(tp_count)
 
 
   datastack = np.stack((precision,recall,accuracy,f1,specificity,balanced_accuracy),axis=-1)
@@ -297,11 +271,11 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
               f"Max balanced accuracy {np.nanmax(balanced_accuracy):.2%}, "
               f"Max F1 score {np.nanmax(f1):.2%}, \n"
               
-              f"Label cardinality {label_cardinality:.1f}, "
+              f"Label cardinality {label_cardinality:.2f}, "
               f"Label density {label_density:.2%}, "
               f"Hamming loss {hamming_mean_loss:.2%}, "
               f"Jaccard index {jaccard_index:.2%}, "
-              f"Exact match {exact_match:.2%}"
+              f"Exact match {exact_match:.1f}"
               )
   logger.flush()
   return 0
