@@ -49,7 +49,7 @@ class IUXrayDataset(Dataset):#Adapted from NUSdataset and my own work
         if train:
           anno_path = f'{anno_path}/train.json'
         else:
-          anno_path = f'{anno_path}/train.json'
+          anno_path = f'{anno_path}/valid.json'
         with open(anno_path) as fp:
             json_data = json.load(fp)
         
@@ -202,7 +202,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
       # compute output, measure accuracy and record loss.
       with chrono.measure("eval fprop"):
         logits = model(x)
-        c = torch.nn.BCEWithLogitsLoss()(logits, y)
+        c = torch.nn.BCEWithLogitsLoss(pos_weights=train_set.pos_weights)(logits, y)
         #we need to compare logits and y
         sensitivity = 0.5
         sens_tensor = torch.full(logits.size(),sensitivity).to(device, non_blocking=True)
