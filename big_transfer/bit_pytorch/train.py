@@ -352,8 +352,6 @@ def main(args):
 
   model = model.to(device)
   optim.zero_grad()
-  step_name = 'start'
-  run_eval(model, valid_loader, device, chrono, logger, args, step_name, train_set.pos_weights)
 
   model.train()
   mixup = bit_hyperrule.get_mixup(len(train_set))
@@ -364,6 +362,10 @@ def main(args):
   accum_steps = 0
   mixup_l = np.random.beta(mixup, mixup) if mixup > 0 else 1
   end = time.time()
+
+  step_name = 'start'
+  run_eval(model, valid_loader, device, chrono, logger, args, step_name, train_set.pos_weights)
+
 
   with lb.Uninterrupt() as u:
     for x, y in recycle(train_loader):
