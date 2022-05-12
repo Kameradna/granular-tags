@@ -189,7 +189,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
       # compute output, measure accuracy and record loss.
       with chrono.measure("eval fprop") and torch.cuda.amp.autocast(enabled=args.use_amp):
         logits = model(x)
-        c = torch.nn.BCEWithLogitsLoss(logits, y)
+        c = torch.nn.BCEWithLogitsLoss()(logits, y)
         #we need to compare logits and y
         sensitivity = 0.5
         sens_tensor = torch.full(logits.size(),sensitivity).to(device, non_blocking=True)
@@ -365,7 +365,7 @@ def main(args):
         y = y.to(device, non_blocking=True)
 
         # Update learning-rate, including stop training if over.
-        lr = bit_hyperrule.get_lr(step, len(train_set)*100, args.base_lr)
+        lr = bit_hyperrule.get_lr(step, len(train_set), args.base_lr)
         if lr is None:
           break
         for param_group in optim.param_groups:
