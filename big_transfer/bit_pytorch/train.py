@@ -239,14 +239,14 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   label_cardinality = np.mean(labelnosum)#labelnosum has len [validset] like it should
   label_density = np.mean(labelnosum)/label_number #correct
   hamming_mean_loss = np.mean(hamming)
-  jaccard_index = jaccard_score(groundtruthlist,predslist)
-  hamming_new = hamming_loss(groundtruthlist,predslist)
-  print(f'New hamming {hamming_new}')
+  # jaccard_index = jaccard_score(groundtruthlist,predslist)
+  # hamming_new = hamming_loss(groundtruthlist,predslist)
+  # print(f'New hamming {hamming_new}')
   # exact_match = exact_match/len(tp_count)
 
   naive_accuracy = 1-label_density
   #mapping accuracy onto 0:1 for naive_accuracy:1
-  
+  adjusted_accuracy = (accuracy - naive_accuracy)/(1-naive_accuracy)
 
 
 
@@ -280,6 +280,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
               f"Label density {label_density:.2%}, "
               f"Hamming loss {hamming_mean_loss:.2%}, "
               f"Jaccard index {jaccard_index:.2%}, "
+              f"Adjusted accuracy {adjusted_accuracy:.2%}, "
               f"Exact match {exact_match:.1f}"
               )
   logger.flush()
