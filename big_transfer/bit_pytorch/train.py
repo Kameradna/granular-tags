@@ -49,7 +49,7 @@ class IUXrayDataset(Dataset):#Adapted from NUSdataset and my own work
         if train:
           anno_path = f'{anno_path}/train.json'
         else:
-          anno_path = f'{anno_path}/valid.json'
+          anno_path = f'{anno_path}/train.json'
         with open(anno_path) as fp:
             json_data = json.load(fp)
         
