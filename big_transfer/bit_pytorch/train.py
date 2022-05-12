@@ -65,7 +65,7 @@ class IUXrayDataset(Dataset):#Adapted from NUSdataset and my own work
         print(len(each_pos))
         print(each_neg)
         print(len(each_neg))
-        each_pos = [100000000 if each_pos[x] == 0 else each_pos[x] for x in range(len(each_pos))]#really janky workaround for my random sampling of the training set having 0 positive examples of a class
+        each_pos = [0.1 if each_pos[x] == 0 else each_pos[x] for x in range(len(each_pos))]#really janky workaround for my random sampling of the training set having 0 positive examples of a class
         self.pos_weights = [each_neg[x]/each_pos[x] for x in range(len(each_pos))]
         print(self.pos_weights)
         print(len(self.pos_weights))
@@ -274,6 +274,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights
   datastack = np.stack((precision,recall,accuracy,f1,specificity,balanced_accuracy),axis=-1)
   print('precision,recall,accuracy,f1,specificity,balanced_accuracy')
   print(datastack)
+  print(np.mean(loss))
 
   logger.info(f"Mean precision {precision:.2%}, "
               f"Mean recall {recall:.2%}, "
@@ -355,7 +356,7 @@ def main(args):
 
   model.train()
   mixup = bit_hyperrule.get_mixup(len(train_set))
-  cri = torch.nn.BCEWithLogitsLoss(reduction='none',pos_weight=torch.Tensor(train_set.pos_weights)).to(device)
+  cri = torch.nn.BCEWithLogitsLoss(pos_weight=torch.Tensor(train_set.pos_weights)).to(device)
 
   logger.info("Starting training!")
   chrono = lb.Chrono()
@@ -403,7 +404,8 @@ def main(args):
       # Accumulate grads
       with chrono.measure("grads"):
         # scaler.scale(c / args.batch_split).backward()#MY ADDITION
-        c.backward(torch.ones_like(c))
+
+        c.backward()
         accum_steps += 1
 
       accstep = f" ({accum_steps}/{args.batch_split})" if args.batch_split > 1 else ""
