@@ -167,7 +167,6 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
 
   first_batch = True
   exact_match = 0
-  labelnosum = []
   hamming = []
   groundtruthlist = []
   predslist = []
@@ -239,11 +238,11 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
   specificity = tn_count/(tn_count+fp_count)
   balanced_accuracy = (recall+specificity)/2
 
-  print(labelnosum)
-  print(len(labelnosum))
-  label_cardinality = np.mean(labelnosum)#labelnosum has len [validset] like it should
+  print(labelsum)
+  print(len(labelsum))
+  label_cardinality = np.mean(labelsum)#labelnosum has len [validset] like it should
   print(label_number)
-  label_density = np.mean(labelnosum)/label_number #correct
+  label_density = np.mean(labelsum)/label_number #correct
   print(hamming)
   print(len(hamming))
   hamming_mean_loss = np.mean(hamming)
