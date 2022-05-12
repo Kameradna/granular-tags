@@ -58,10 +58,11 @@ class IUXrayDataset(Dataset):#Adapted from NUSdataset and my own work
         self.annos = list(json_data.values())
         print(type(self.annos))
         pos_weights = [0]*len(self.annos)
-        for sample in len(self.annos):
+        for sample in range(len(self.annos)):
           pos_weights = [pos_weights[x]+self.annos[sample][x] for x in len(self.annos[sample])]
         print(self.annos[0])
         print(pos_weights)
+        print(len(pos_weights))
         print('tick')
         self.data_path = data_path
         for img in range(len(self.imgs)):
