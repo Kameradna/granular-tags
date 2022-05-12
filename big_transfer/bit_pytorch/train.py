@@ -212,8 +212,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
         loss.append(c.cpu().numpy())
 
         labelsum.append(np.sum(groundtruth.cpu().numpy()))#summing all positive labels for each sample
-        label_number = len(groundtruth.cpu().numpy())
-        print(groundtruth.cpu().numpy()[0])
+        label_number = len(groundtruth.cpu().numpy()[0])
         hamming.append(hamming_loss(groundtruth.cpu().numpy(),preds.cpu().numpy()))#list of the hamming losses per sample
         groundtruthlist.append(groundtruth.cpu().numpy())
         predslist.append(preds.cpu().numpy())
