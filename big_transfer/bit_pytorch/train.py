@@ -59,7 +59,7 @@ class IUXrayDataset(Dataset):#Adapted from NUSdataset and my own work
         print(type(self.annos))
         pos_weights = [0]*len(self.annos)
         for sample in range(len(self.annos)):
-          pos_weights = [pos_weights[x]+self.annos[sample][x] for x in len(self.annos[sample])]
+          pos_weights = [pos_weights[x]+self.annos[sample][x] for x in range(len(self.annos[sample]))]
         print(self.annos[0])
         print(pos_weights)
         print(len(pos_weights))
