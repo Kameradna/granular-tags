@@ -56,6 +56,7 @@ class IUXrayDataset(Dataset):#Adapted from NUSdataset and my own work
         self.imgs = list(json_data.keys())
         # print(self.imgs)
         self.annos = list(json_data.values())
+        print(type(self.annos))
         print('tick')
         self.data_path = data_path
         for img in range(len(self.imgs)):
