@@ -189,7 +189,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step):
       # compute output, measure accuracy and record loss.
       with chrono.measure("eval fprop") and torch.cuda.amp.autocast(enabled=args.use_amp):
         logits = model(x)
-        c = torch.nn.BCEWithLogitsLoss()(logits, y)
+        c = torch.nn.BCELoss()(logits, y)
         #we need to compare logits and y
         sensitivity = 0.5
         sens_tensor = torch.full(logits.size(),sensitivity).to(device, non_blocking=True)
@@ -342,7 +342,7 @@ def main(args):
 
   model.train()
   mixup = bit_hyperrule.get_mixup(len(train_set))
-  cri = torch.nn.BCEWithLogitsLoss().to(device)
+  cri = torch.nn.BCELoss().to(device)
 
   logger.info("Starting training!")
   chrono = lb.Chrono()
