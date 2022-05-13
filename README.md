@@ -1,7 +1,7 @@
 # granular-tags
 Granular tag prediction for IU-x-ray
 
-To pull github and set up environment run in your home directory
+To pull github and set up environment run in your home directory (prerequisites: anaconda and an internet connection)
 ```shell
 conda create -n grantags python=3.7 --yes
 conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch --yes
