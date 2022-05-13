@@ -59,10 +59,9 @@ python negbio2/negbio/negbio_pipeline.py ssplit --output $OUTPUT_DIR/ssplit $OUT
 python negbio2/negbio/negbio_pipeline.py parse --output $OUTPUT_DIR/parse $OUTPUT_DIR/ssplit/* --workers=4
 python negbio2/negbio/negbio_pipeline.py ptb2ud --output $OUTPUT_DIR/ud $OUTPUT_DIR/parse/* --workers=8
 python negbio2/negbio/negbio_pipeline.py dner_regex --phrases $NEGBIOC_DIR/patterns/chexpert_phrases.yml --output $OUTPUT_DIR/dner $OUTPUT_DIR/ud/* --suffix=.chexpert-regex.xml --workers=6
-python negbio2/negbio/negbio_pipeline.py neg2 --neg-patterns=$PWD/negbio2/patterns/neg_patterns2.yml --pre-negation-uncertainty-patterns=$PWD/negbio2/patterns/chexpert_pre_negation_uncertainty.yml --post-negation-uncertainty-patterns=$PWD/negbio2/patterns/post_negation_uncertainty.yml --neg-regex-patterns=$PWD/negbio2/patterns/neg_regex_patterns.yml --uncertainty-regex-patterns=$PWD/negbio2/patterns/uncertainty_regex_patterns.yml --workers=6 --output $OUTPUT_DIR/neg $OUTPUT_DIR/dner/*
+python negbio2/negbio/negbio_pipeline.py neg2 --neg-patterns=$NEGBIOC_DIR/patterns/neg_patterns2.yml --pre-negation-uncertainty-patterns=$PWD/negbio2/patterns/chexpert_pre_negation_uncertainty.yml --post-negation-uncertainty-patterns=$PWD/negbio2/patterns/post_negation_uncertainty.yml --neg-regex-patterns=$PWD/negbio2/patterns/neg_regex_patterns.yml --uncertainty-regex-patterns=$NEGBIOC_DIR/patterns/uncertainty_regex_patterns.yml --workers=6 --output $OUTPUT_DIR/neg $OUTPUT_DIR/dner/*
 python negbio2/negbio/negbio_pipeline.py cleanup --output $OUTPUT_DIR/clean $OUTPUT_DIR/neg/*
-python matrix_from_tags.py --xml_dir=$PWD/xml_reports/clean/all_together_all_topics.secsplit.ssplit.bllip.ud.mm.neg2.negbio.xml --save_dir=splitsX --overwrite=True --map_file=$PWD/IU_xray_data/indiana_projections.csv --split 0.8 --min_unique_tags 0
-
+python matrix_from_tags.py --xml_dir=$OUTPUT_DIR/clean/all_together_all_topics.secsplit.ssplit.bllip.ud.chexpert-regex.neg2.negbio.xml --save_dir=splitsX --overwrite=True --map_file=$PWD/IU_xray_data/indiana_projections.csv --split 0.8 --min_unique_tags 0
 ```
 
 
