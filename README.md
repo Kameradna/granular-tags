@@ -35,7 +35,40 @@ export THESISPATH="$PWD" #record parent path for use in arguments
 cd big_transfer
 ```
 Below this line is for more custom use cases, and requires further dependencies such as bioc, others
-Definitely consider changing the training validation split via matrix_to_tags
+
+
+To rerun the matrix_from_tags section, which transforms the negbio2 processed and classified final clean xml file into the target vectors and image mappings:
 ```shell
 python matrix_from_tags.py --xml_dir=$PWD/xml_reports/clean/all_together_all_topics.secsplit.ssplit.bllip.ud.mm.neg2.negbio.xml --save_dir=splits3 --overwrite=True --map_file=$PWD/IU_xray_data/indiana_projections.csv --split 0.9 --min_unique_tags 10
+```
+To rerun the full negbio pipeline would be very difficult and classically I have run into many dependency issues, but should you desire to do so, return to granular-tags directory and run:
+Consider providing an alternate xml_reports folder to prevent overwrites, and I would highly recommend running at least the negbio pipeline one command at a time to ensure that errors are not propagated. Be advised that some steps ie the parse or pt2ud steps take up to 40 or more minutes depending on performance.
+
+```shell
+git clone https://github.com/bionlplab/negbio2.git
+conda create --name negbio2 python=3.7 pip pandas bioc
+conda activate negbio2
+export OUTPUT_DIR="$PWD/xml_reports"
+export TEXT_DIR="$PWD/txt_reports"
+export NEGBIOC_DIR="$PWD/negbio2"
+cd negbio2
+pip install -r requirements3.txt
+cd ..
+python negbio2/negbio/negbio_pipeline.py text2bioc --output=$OUTPUT_DIR/all_together_find_ind.xml $TEXT_DIR/*.txt
+python negbio2/negbio/negbio_pipeline.py ssplit --output $OUTPUT_DIR/ssplit $OUTPUT_DIR/sections/* --workers=8
+python negbio2/negbio/negbio_pipeline.py parse --output $OUTPUT_DIR/parse $OUTPUT_DIR/ssplit/* --workers=4
+python negbio2/negbio/negbio_pipeline.py ptb2ud --output $OUTPUT_DIR/ud $OUTPUT_DIR/parse/* --workers=8
+python negbio2/negbio/negbio_pipeline.py dner_regex --phrases $NEGBIOC_DIR/patterns/chexpert_phrases.yml --output $OUTPUT_DIR/dner $OUTPUT_DIR/ud/* --suffix=.chexpert-regex.xml --workers=6
+python negbio2/negbio/negbio_pipeline.py neg2 --neg-patterns=$PWD/negbio2/patterns/neg_patterns2.yml --pre-negation-uncertainty-patterns=$PWD/negbio2/patterns/chexpert_pre_negation_uncertainty.yml --post-negation-uncertainty-patterns=$PWD/negbio2/patterns/post_negation_uncertainty.yml --neg-regex-patterns=$PWD/negbio2/patterns/neg_regex_patterns.yml --uncertainty-regex-patterns=$PWD/negbio2/patterns/uncertainty_regex_patterns.yml --workers=6 --output $OUTPUT_DIR/neg $OUTPUT_DIR/dner/*
+clean
+python matrix_from_tags.py --xml_dir=$PWD/xml_reports/clean/all_together_all_topics.secsplit.ssplit.bllip.ud.mm.neg2.negbio.xml --save_dir=splitsX --overwrite=True --map_file=$PWD/IU_xray_data/indiana_projections.csv --split 0.8 --min_unique_tags 0
+
+```
+
+
+Also consider that you have to install the MetaMap binaries in their default location and specify that when using the MetaMap tagger. Eg: with metamap2020 installed (you need to apply for a license and wait a couple of days to get access to the download and API).
+
+```shell
+export METAMAP_BIN=METAMAP_HOME/bin/metamap20
+python negbio2/negbio/negbio_pipeline.py dner_mm --metamap=$METAMAP_BIN --output $OUTPUT_DIR/dner $OUTPUT_DIR/ud/* --suffix=.chexpert-regex.xml --workers=8
 ```
