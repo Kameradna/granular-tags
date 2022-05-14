@@ -71,6 +71,8 @@ python matrix_from_tags.py --xml_dir=$OUTPUT_DIR/clean/all_together_all_topics.s
 Consider providing alternate names for your new xml_reports and splits folders to prevent overwrites, and I would highly recommend running at least the negbio pipeline one command at a time to ensure that errors are not propagated. Be advised that some steps ie the parse or pt2ud steps take up to 40 or more minutes depending on performance.
 
 
+You may want to edit the xmlify.py (name tbc) file and rerun to repopulate the txt_reports folder with text reports that include or exclude additional fields available in the OpenI data. Canonically we just base models on Impression and Findings since these are the most generic 'report' type data that is available, and makes the results we get most useful across different datasets since many do not include any other fields of information.
+
 
 Also consider that you have to install the MetaMap binaries in their default location and specify that when using the MetaMap tagger. Eg: with metamap2020 installed (you need to apply for a license and wait a couple of days to get access to the download and API).
 
