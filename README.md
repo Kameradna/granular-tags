@@ -57,6 +57,7 @@ conda activate negbio2
 export OUTPUT_DIR="$PWD/xml_reports"
 export TEXT_DIR="$PWD/txt_reports"
 export NEGBIOC_DIR="$PWD/negbio2"
+export PYTHONPATH="$PWD/negbio2"
 cd negbio2
 pip install -r requirements3.txt
 cd ..
