@@ -23,7 +23,8 @@ for row in file_df.itertuples():
         f.write(f'impression: {row.impression}\n')
 print('success')
 
-
+import nltk
+nltk.download('punkt')
 
 
 # print(file_df)
