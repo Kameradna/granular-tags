@@ -21,7 +21,9 @@ import time
 
 import numpy as np
 import torch
+import torch.nn as nn
 import torchvision as tv
+import torchvision.models as models
 from torch.utils.data import Dataset
 
 import bit_pytorch.fewshot as fs
@@ -311,21 +313,28 @@ def mixup_criterion(criterion, pred, y_a, y_b, l):
 
 def main(args):
   logger = bit_common.setup_logger(args)
-  use_amp = False
   # Lets cuDNN benchmark conv implementations and choose the fastest.
   # Only good if sizes stay the same within the main loop!
   
   torch.backends.cudnn.benchmark = True
-  # scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+  scaler = torch.cuda.amp.GradScaler(enabled=args.use_amp)
 
   device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
   logger.info(f"Going to train on {device}")
 
   train_set, valid_set, train_loader, valid_loader = mktrainval(args, logger)
-
-  logger.info(f"Loading model from {args.model}.npz")
-  model = models.KNOWN_MODELS[args.model](head_size=len(valid_set.classes), zero_head=True)
-  model.load_from(np.load(f"{args.model}.npz"))
+  
+  if args.chexpert:
+    model = models.densenet121(pretrained=False)
+    num_ftrs = model.fc.in_features
+    # Here the size of each output sample is set to 2.
+    # Alternatively, it can be generalized to nn.Linear(num_ftrs, len(class_names)).
+    model.fc = nn.Linear(num_ftrs, len(valid_set.classes))
+    #normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) for any pretrained pytorch zoo models
+  elif args.chexpert == False:
+    logger.info(f"Loading model from {args.model}.npz")
+    model = models.KNOWN_MODELS[args.model](head_size=len(valid_set.classes), zero_head=True)
+    model.load_from(np.load(f"{args.model}.npz"))
 
   logger.info("Moving model onto all GPUs")
   model = torch.nn.DataParallel(model)
@@ -336,7 +345,10 @@ def main(args):
   step = 0
 
   # Note: no weight-decay!
-  optim = torch.optim.SGD(model.parameters(), lr=0.003, momentum=0.9)
+  if args.chexpert:
+    optim = torch.optim.Adam(model.parameters(),lr=0.0001,betas=(0.9,0.999))
+  else:  
+    optim = torch.optim.SGD(model.parameters(), lr=0.003, momentum=0.9)
 
   # Resume fine-tuning if we find a saved model.
   savename = pjoin(args.logdir, args.name, "bit.pth.tar")
@@ -357,7 +369,7 @@ def main(args):
 
   model.train()
   mixup = bit_hyperrule.get_mixup(len(train_set))
-  cri = torch.nn.BCEWithLogitsLoss(reduction='none',pos_weight=torch.Tensor(train_set.pos_weights)).to(device)
+  cri = torch.nn.BCEWithLogitsLoss(pos_weight=torch.Tensor(train_set.pos_weights)).to(device)
 
   logger.info("Starting training!")
   chrono = lb.Chrono()
@@ -378,34 +390,38 @@ def main(args):
         break
 
 
-      # with torch.cuda.amp.autocast(enabled=use_amp): #MY ADDITION
-      # Schedule sending to GPU(s)
-      x = x.to(device, non_blocking=True)
-      y = y.to(device, non_blocking=True)
+      with torch.cuda.amp.autocast(enabled=args.use_amp): #MY ADDITION
+        # Schedule sending to GPU(s)
+        x = x.to(device, non_blocking=True)
+        y = y.to(device, non_blocking=True)
 
-      # Update learning-rate, including stop training if over.
-      lr = bit_hyperrule.get_lr(step, len(train_set), args.base_lr)
-      if lr is None:
-        break
-      for param_group in optim.param_groups:
-        param_group["lr"] = lr
+        # Update learning-rate, including stop training if over.
+        if args.chexpert == False:#chexpert does not update the learning rate
+          lr = bit_hyperrule.get_lr(step, len(train_set), args.base_lr)
+          if lr is None:
+            break
+          for param_group in optim.param_groups:
+            param_group["lr"] = lr
+        elif args.chexpert:
+          if step > 3*len(train_set)/args.batch:
+            break
 
-      if mixup > 0.0:
-        x, y_a, y_b = mixup_data(x, y, mixup_l)
-
-      # compute output
-      with chrono.measure("fprop"):
-        logits = model(x)
         if mixup > 0.0:
-          c = mixup_criterion(cri, logits, y_a, y_b, mixup_l)
-        else:
-          c = cri(logits, y)
-        c_num = float(np.mean(c.data.cpu().numpy()))  # Also ensures a sync point.
+          x, y_a, y_b = mixup_data(x, y, mixup_l)
+
+        # compute output
+        with chrono.measure("fprop"):
+          logits = model(x)
+          if mixup > 0.0:
+            c = mixup_criterion(cri, logits, y_a, y_b, mixup_l)
+          else:
+            c = cri(logits, y)
+          c_num = float(np.mean(c.data.cpu().numpy()))  # Also ensures a sync point.
 
       # Accumulate grads
       with chrono.measure("grads"):
-        # scaler.scale(c / args.batch_split).backward()#MY ADDITION
-        c.backward(torch.ones_like(c))
+        scaler.scale(c / args.batch_split).backward()#MY ADDITION
+        #c.backward()#torch.ones_like(c) if reduction='none'
         accum_steps += 1
 
       accstep = f" ({accum_steps}/{args.batch_split})" if args.batch_split > 1 else ""
@@ -415,9 +431,9 @@ def main(args):
       # Update params
       if accum_steps == args.batch_split:
         with chrono.measure("update"):
-          optim.step()
-          # scaler.step(optim)#MY ADDITION
-          # scaler.update()#MY ADDITION
+          # optim.step()
+          scaler.step(optim)#MY ADDITION
+          scaler.update()#MY ADDITION
           optim.zero_grad(set_to_none=True)#my edit
         step += 1
         accum_steps = 0
@@ -432,7 +448,7 @@ def main(args):
                 "step": step,
                 "model": model.state_dict(),
                 "optim" : optim.state_dict(),
-            }, savename)
+            }, savename) #may be able to hack this
 
       end = time.time()
 
@@ -450,7 +466,8 @@ if __name__ == "__main__":
   parser.add_argument("--workers", type=int, default=8,
                       help="Number of background threads used to load data.")
   parser.add_argument("--no-save", dest="save", action="store_false")
-  # parser.add_argument("--use_amp", required=True, type=bool,
-  #                     help="Use Automated Mixed Precision to save potential memory and compute?", default=False)
+  parser.add_argument("--use_amp", required=True, dest="use_amp",action="store_true",
+                     help="Use Automated Mixed Precision to save potential memory and compute?")
   parser.add_argument("--annodir", required=True, help="Where are the annotation files to load?")
+  parser.add_argument("--chexpert", dest="chexpert", action="store_true",help="Run as the chexpert paper?")
   main(parser.parse_args())
