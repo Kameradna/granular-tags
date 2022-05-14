@@ -61,6 +61,7 @@ export NEGBIOC_DIR="$PWD/negbio2"
 export PYTHONPATH="$PWD/negbio2"
 cd negbio2
 pip install -r requirements3.txt
+pip install -U numpy #to avoid a later runtime error because negbio doesn't update their docs
 cd ..
 mkdir $OUTPUT_DIR #just in case
 python negbio2/negbio/negbio_pipeline.py text2bioc --output=$OUTPUT_DIR/all_together_find_ind.xml $TEXT_DIR/*.txt
@@ -73,7 +74,7 @@ python negbio2/negbio/negbio_pipeline.py neg2 --neg-patterns=$NEGBIOC_DIR/patter
 python negbio2/negbio/negbio_pipeline.py cleanup --output $OUTPUT_DIR/clean $OUTPUT_DIR/neg/*
 python matrix_from_tags.py --xml_dir=$OUTPUT_DIR/clean/all_together_all_topics.secsplit.ssplit.bllip.ud.chexpert-regex.neg2.negbio.xml --save_dir=splitsX --overwrite=True --map_file=$PWD/IU_xray_data/indiana_projections.csv --split 0.8 --min_unique_tags 0
 ```
-Consider providing alternate names for your new xml_reports and splits folders to prevent overwrites, and I would highly recommend running at least the negbio pipeline one command at a time to ensure that errors are not propagated. Be advised that some steps ie the parse or pt2ud steps take up to 40 or more minutes depending on performance.
+Consider providing alternate names for your new xml_reports and splits folders to prevent overwrites, and I would highly recommend running at least the negbio pipeline one command at a time to ensure that errors are not propagated. Be advised that some steps ie the parse and pt2ud steps take up to 20 mins or up to 3 hours respectively. Also consider splitting the xmls into sections and batch your txts into smaller xml and allow parallisation.
 
 
 You may want to edit the xmlify.py (name tbc) file and rerun to repopulate the txt_reports folder with text reports that include or exclude additional fields available in the OpenI data. Canonically we just base models on Impression and Findings since these are the most generic 'report' type data that is available, and makes the results we get most useful across different datasets since many do not include any other fields of information.
