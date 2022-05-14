@@ -16,7 +16,8 @@ cd
 git clone https://github.com/Kameradna/granular-tags.git
 cd granular-tags
 kaggle datasets download -d raddar/chest-xrays-indiana-university
-unzip chest-xrays-indiana-university.zip
+mkdir IU_xray_data
+unzip chest-xrays-indiana-university.zip -d IU_xray_data
 gdown 'https://docs.google.com/uc?id=19nAgOOGf6WK57xqqmPy9dIvOoupHcwsP' -O reports_and_files.zip
 unzip reports_and_files.zip
 export THESISPATH="$PWD" #record parent path for use in arguments
