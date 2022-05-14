@@ -45,8 +45,6 @@ To rerun the matrix_from_tags section, which transforms the negbio2 processed an
 python matrix_from_tags.py --xml_dir=$PWD/xml_reports/clean/all_together_all_topics.secsplit.ssplit.bllip.ud.mm.neg2.negbio.xml --save_dir=splits3 --overwrite=True --map_file=$PWD/IU_xray_data/indiana_projections.csv --split 0.9 --min_unique_tags 10
 ```
 To rerun the full negbio pipeline would be very difficult and classically I have run into many dependency issues, but should you desire to do so, return to granular-tags directory and run:
-Consider providing alternate names for your new xml_reports and splits folders to prevent overwrites, and I would highly recommend running at least the negbio pipeline one command at a time to ensure that errors are not propagated. Be advised that some steps ie the parse or pt2ud steps take up to 40 or more minutes depending on performance.
-
 ```shell
 git clone https://github.com/bionlplab/negbio2.git
 conda create --name negbio2 python=3.7 pip pandas bioc
@@ -66,6 +64,8 @@ python negbio2/negbio/negbio_pipeline.py neg2 --neg-patterns=$NEGBIOC_DIR/patter
 python negbio2/negbio/negbio_pipeline.py cleanup --output $OUTPUT_DIR/clean $OUTPUT_DIR/neg/*
 python matrix_from_tags.py --xml_dir=$OUTPUT_DIR/clean/all_together_all_topics.secsplit.ssplit.bllip.ud.chexpert-regex.neg2.negbio.xml --save_dir=splitsX --overwrite=True --map_file=$PWD/IU_xray_data/indiana_projections.csv --split 0.8 --min_unique_tags 0
 ```
+Consider providing alternate names for your new xml_reports and splits folders to prevent overwrites, and I would highly recommend running at least the negbio pipeline one command at a time to ensure that errors are not propagated. Be advised that some steps ie the parse or pt2ud steps take up to 40 or more minutes depending on performance.
+
 
 
 Also consider that you have to install the MetaMap binaries in their default location and specify that when using the MetaMap tagger. Eg: with metamap2020 installed (you need to apply for a license and wait a couple of days to get access to the download and API).
