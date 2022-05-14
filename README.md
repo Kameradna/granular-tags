@@ -7,6 +7,7 @@ conda create -n grantags python=3.7 --yes
 conda activate grantags
 conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch --yes
 pip install kaggle
+pip install gdown
 mkdir .kaggle
 cd .kaggle
 wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1zo5krOvThWMfO-8qV4EmIOoZL_dCTSD1' -O kaggle.json
