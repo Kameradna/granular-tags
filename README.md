@@ -10,6 +10,7 @@ pip install kaggle
 mkdir .kaggle
 cd .kaggle
 wget --no-check-certificate 'https://docs.google.com/uc?export=download&id=1zo5krOvThWMfO-8qV4EmIOoZL_dCTSD1' -O kaggle.json
+chmod 600 kaggle.json
 cd
 git clone https://github.com/Kameradna/granular-tags.git
 cd granular-tags
