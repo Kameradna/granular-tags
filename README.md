@@ -51,7 +51,7 @@ python matrix_from_tags.py --xml_dir=$PWD/xml_reports/clean/all_together_all_top
 To rerun the full negbio pipeline would be very difficult and classically I have run into many dependency issues, but should you desire to do so, return to granular-tags directory and run:
 ```shell
 git clone https://github.com/bionlplab/negbio2.git
-conda create --name negbio2 python=3.7 pip pandas bioc
+conda create --name negbio2 python=3.7 pip pandas
 conda activate negbio2
 export OUTPUT_DIR="$PWD/xml_reports"
 export TEXT_DIR="$PWD/txt_reports"
