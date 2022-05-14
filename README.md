@@ -62,6 +62,7 @@ export PYTHONPATH="$PWD/negbio2"
 cd negbio2
 pip install -r requirements3.txt
 cd ..
+mkdir OUTPUT_DIR #just in case
 python negbio2/negbio/negbio_pipeline.py text2bioc --output=$OUTPUT_DIR/all_together_find_ind.xml $TEXT_DIR/*.txt
 python negbio2/negbio/negbio_pipeline.py ssplit --output $OUTPUT_DIR/ssplit $OUTPUT_DIR/sections/* --workers=8
 python negbio2/negbio/negbio_pipeline.py parse --output $OUTPUT_DIR/parse $OUTPUT_DIR/ssplit/* --workers=4
