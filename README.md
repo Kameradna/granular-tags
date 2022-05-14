@@ -26,6 +26,10 @@ Now choose which network you would like and download it into big_transfer
 ```shell
 wget https://storage.googleapis.com/bit_models/BiT-M-R50x1.npz
 ```
+See https://github.com/google-research/big_transfer.git for the Google Big Transfer documentation, but the choices here are:
+-Dot point 1
+-Dot point 2
+-
 And run the model training (inside the big_transfer directory)
 ```shell
 python -m bit_pytorch.train --name testingiuxray_`date +%F_%H%M%S` --model BiT-M-R50x1 --logdir $THESISPATH/output/testing --dataset iu-xray --datadir $THESISPATH/IU_xray_data/images/images_normalized --workers 8 --batch 128 --batch_split 4 --eval_every 10 --base_lr 0.001 --annodir $THESISPATH/splits
