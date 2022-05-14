@@ -378,29 +378,29 @@ def main(args):
         break
 
 
-      with torch.cuda.amp.autocast(enabled=use_amp): #MY ADDITION
-        # Schedule sending to GPU(s)
-        x = x.to(device, non_blocking=True)
-        y = y.to(device, non_blocking=True)
+      # with torch.cuda.amp.autocast(enabled=use_amp): #MY ADDITION
+      # Schedule sending to GPU(s)
+      x = x.to(device, non_blocking=True)
+      y = y.to(device, non_blocking=True)
 
-        # Update learning-rate, including stop training if over.
-        lr = bit_hyperrule.get_lr(step, len(train_set), args.base_lr)
-        if lr is None:
-          break
-        for param_group in optim.param_groups:
-          param_group["lr"] = lr
+      # Update learning-rate, including stop training if over.
+      lr = bit_hyperrule.get_lr(step, len(train_set), args.base_lr)
+      if lr is None:
+        break
+      for param_group in optim.param_groups:
+        param_group["lr"] = lr
 
+      if mixup > 0.0:
+        x, y_a, y_b = mixup_data(x, y, mixup_l)
+
+      # compute output
+      with chrono.measure("fprop"):
+        logits = model(x)
         if mixup > 0.0:
-          x, y_a, y_b = mixup_data(x, y, mixup_l)
-
-        # compute output
-        with chrono.measure("fprop"):
-          logits = model(x)
-          if mixup > 0.0:
-            c = mixup_criterion(cri, logits, y_a, y_b, mixup_l)
-          else:
-            c = cri(logits, y)
-          c_num = float(np.mean(c.data.cpu().numpy()))  # Also ensures a sync point.
+          c = mixup_criterion(cri, logits, y_a, y_b, mixup_l)
+        else:
+          c = cri(logits, y)
+        c_num = float(np.mean(c.data.cpu().numpy()))  # Also ensures a sync point.
 
       # Accumulate grads
       with chrono.measure("grads"):
