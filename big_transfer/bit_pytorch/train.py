@@ -426,15 +426,12 @@ def main(args):
           c = mixup_criterion(cri, logits, y_a, y_b, mixup_l)
         else:
           c = cri(logits, y)
-        print('here?')
-        print(c)
-        c_num = c.item().cpu().numpy() # Also ensures a sync point.
-        print('but not here?')
+        c_num = float(c.data.cpu().numpy()) # Also ensures a sync point.
 
       # Accumulate grads
       with chrono.measure("grads"):
         # scaler.scale(c / args.batch_split).backward()#MY ADDITION
-        c.backward()#torch.ones_like(c) if reduction='none'
+        (c/args.batch_split).backward()#torch.ones_like(c) if reduction='none'
         # accum_steps += 1
 
       accstep = f" ({accum_steps}/{args.batch_split})" if args.batch_split > 1 else ""
