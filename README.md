@@ -33,7 +33,7 @@ ResNet-50x1, ResNet-101x1, ResNet-50x3, ResNet-101x3, and ResNet-152x4 for BiT-M
 
 And run the model training (inside the big_transfer directory)
 ```shell
-python -m bit_pytorch.train --name testingiuxray_`date +%F_%H%M%S` --model BiT-M-R50x1 --logdir $THESISPATH/output/testing --dataset iu-xray --datadir $THESISPATH/IU_xray_data/images/images_normalized --workers 8 --batch 128 --batch_split 4 --eval_every 10 --base_lr 0.001 --annodir $THESISPATH/splits
+python -m bit_pytorch.train --name chexpertbase_`date +%F_%H%M%S` --model densenet121 --logdir $THESISPATH/output/chexpert --dataset iu-xray --datadir $THESISPATH/IU_xray_data/images/images_normalized --workers 24 --batch 16 --batch_split 1 --eval_every 10 --base_lr 0.0001 --annodir $THESISPATH/splitsX --use_amp --chexpert
 ```
 As it has been set up, every time you restart the shell, you should reinitialise the conda environment and add the environment variable of the parent directory of the git repo.
 ```shell
@@ -47,7 +47,7 @@ Below this line is for more custom use cases, and requires further dependencies 
 
 To rerun the matrix_from_tags section, which transforms the negbio2 processed and classified final clean xml file into the target vectors and image mappings:
 ```shell
-python matrix_from_tags.py --xml_dir=$PWD/xml_reports/clean/all_together_all_topics.secsplit.ssplit.bllip.ud.mm.neg2.negbio.xml --save_dir=splits3 --overwrite=True --map_file=$PWD/IU_xray_data/indiana_projections.csv --split 0.9 --min_unique_tags 10
+python matrix_from_tags.py --xml_dir=$PWD/xml_reports/clean/all_together_all_topics.secsplit.ssplit.bllip.ud.chexpert-regex.neg2.negbio.xml --save_dir=splitsX --overwrite=True --map_file=$PWD/IU_xray_data/indiana_projections.csv --split 0.8 --min_unique_tags 0
 ```
 To rerun the full negbio pipeline would be very difficult and classically I have run into many dependency issues, but should you desire to do so, return to granular-tags directory and run:
 ```shell
