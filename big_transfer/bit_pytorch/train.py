@@ -424,6 +424,7 @@ def main(args):
           c = mixup_criterion(cri, logits, y_a, y_b, mixup_l)
         else:
           c = cri(logits, y)
+        print('here?')
         c_num = float(c.item.cpu().numpy()) # Also ensures a sync point.
 
       # Accumulate grads
