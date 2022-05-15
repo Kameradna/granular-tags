@@ -208,7 +208,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights
       with chrono.measure("eval fprop"):
         logits = model(x)
         # print(logits)
-        c = torch.nn.BCEWithLogitsLoss()(logits, y)#pos_weight=torch.Tensor(pos_weights).to(device)
+        c = torch.nn.BCELoss()(logits, y)#pos_weight=torch.Tensor(pos_weights).to(device)
         #we need to compare logits and y
         sensitivity = 0.5
         sens_tensor = torch.full(logits.size(),sensitivity).to(device, non_blocking=True)
@@ -219,9 +219,9 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights
           exact_match += 1
 
         TPn = np.sum(torch.bitwise_and(groundtruth,preds).cpu().numpy())
-        FPn = np.sum(torch.bitwise_and(groundtruth,torch.bitwise_not(preds)).cpu().numpy())
+        FNn = np.sum(torch.bitwise_and(groundtruth,torch.bitwise_not(preds)).cpu().numpy())
         TNn = np.sum(torch.bitwise_and(torch.bitwise_not(groundtruth),torch.bitwise_not(preds)).cpu().numpy())
-        FNn = np.sum(torch.bitwise_and(torch.bitwise_not(groundtruth),preds).cpu().numpy())
+        FPn = np.sum(torch.bitwise_and(torch.bitwise_not(groundtruth),preds).cpu().numpy())
 
         tp.append(TPn)
         fp.append(FPn)
@@ -374,7 +374,7 @@ def main(args):
 
   model.train()
   mixup = bit_hyperrule.get_mixup(len(train_set))
-  cri = torch.nn.BCEWithLogitsLoss().to(device) #pos_weight=torch.Tensor(train_set.pos_weights)
+  cri = torch.nn.BCELoss().to(device) #pos_weight=torch.Tensor(train_set.pos_weights)
 
   logger.info("Starting training!")
   chrono = lb.Chrono()
