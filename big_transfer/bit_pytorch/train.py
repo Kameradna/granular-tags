@@ -407,6 +407,7 @@ def main(args):
             param_group["lr"] = lr
         elif args.chexpert:
           if step > 3*len(train_set)/args.batch:
+            lr = 0.0001
             break
 
         if mixup > 0.0:
@@ -428,7 +429,7 @@ def main(args):
         accum_steps += 1
 
       accstep = f" ({accum_steps}/{args.batch_split})" if args.batch_split > 1 else ""
-      logger.info(f"[step {step}{accstep}]: loss={c_num:.5f} (lr={lr:.1e})")  # pylint: disable=logging-format-interpolation
+      logger.info(f"[step {step}{accstep}]: loss={c_num:.5f} (lr={lr:.1e}) *maybe lr is wrong*")  # pylint: disable=logging-format-interpolation
       logger.flush()
 
       # Update params
