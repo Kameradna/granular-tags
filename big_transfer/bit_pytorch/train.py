@@ -424,7 +424,7 @@ def main(args):
           c = mixup_criterion(cri, logits, y_a, y_b, mixup_l)
         else:
           c = cri(logits, y)
-        c_num = float(c.data.cpu().numpy()) # Also ensures a sync point.
+        c_num = float(c.item.cpu().numpy()) # Also ensures a sync point.
 
       # Accumulate grads
       with chrono.measure("grads"):
@@ -439,9 +439,9 @@ def main(args):
       # Update params
       if accum_steps == args.batch_split:
         with chrono.measure("update"):
-          # optim.step()
-          scaler.step(optim)#MY ADDITION
-          scaler.update()#MY ADDITION
+          optim.step()
+          # scaler.step(optim)#MY ADDITION
+          # scaler.update()#MY ADDITION
           optim.zero_grad(set_to_none=True)#my edit
         step += 1
         accum_steps = 0
