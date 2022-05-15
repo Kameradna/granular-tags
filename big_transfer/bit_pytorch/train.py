@@ -193,7 +193,7 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
         logits.clamp_(0,1)
         sens_tensor = torch.full(logits.size(),sensitivity).to(device, non_blocking=True)
         preds = torch.ge(logits,sens_tensor)
-        groundtruth = torch.ge(y,sens_tensor)#translates y to tensor
+        groundtruth = torch.ge(y,0.5)#translates y to tensor
 
         TPn = torch.bitwise_and(groundtruth,preds).cpu().numpy()#vectors of size 1,len(tags)
         FNn = torch.bitwise_and(groundtruth,torch.bitwise_not(preds)).cpu().numpy()
@@ -209,6 +209,7 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
     tp_count = np.sum(tp,0)
     print(tp_count)
     fp_count = np.sum(fp,0)
+    print(fp_count)
     tn_count = np.sum(tn,0)
     fn_count = np.sum(fn,0)
 
@@ -224,7 +225,7 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
     FPR[x] = 0
     print(FPR)
     print(FPR[0])
-    exit('Please see if the above makes sense')
+    exit('Please see if the above makes sense, it seems there is some issue with false positives not existing.')
     for label in range(len(pos_weights)):
       indices[label].append((FPR[0][label],TPR[0][label]))
 
