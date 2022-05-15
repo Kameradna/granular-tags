@@ -181,8 +181,8 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
   for label in range(len(pos_weights)):
     indices[label] = []
     area_by_label[label] = 0
-  stepsize = 0.5
-  for sensitivity in np.arange(0,1,stepsize):#low def first
+  resolution = 3
+  for sensitivity in np.linspace(0,1,resolution):#low def first
     print(f'Calculating for sensitivity {sensitivity}')
     tp, fp, tn, fn = [],[],[],[]
     for b, (x, y) in enumerate(data_loader):#should be elements of size 1,len(tags)
@@ -213,7 +213,7 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
     TPR = tp_count / (tp_count + fn_count)
     FPR = fp_count / (fp_count + tn_count)
     for label in range(len(pos_weights)):
-      indices[label].append((FPR,TPR))
+      indices[label].append((FPR[label],TPR[label]))
 
   for label in range(len(pos_weights)):
     for sensitivity in range(len(indices[label])):
@@ -223,6 +223,7 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
       print(pt2)
       area_by_label[label] += area_under_points(pt1,pt2)
   mean_auc = np.mean(list(area_by_label.values()))
+  print(mean_auc)
   model.train()
   return mean_auc
 
@@ -511,6 +512,7 @@ def main(args):
 
         mean_auc = AUC(model,valid_loader,device,args,step,valid_set.pos_weights)
         if mean_auc > best_mean_auc:
+          print("BIG MONEY BIG MONEY BIG MONEY BIG MONEY")
           best_mean_auc = mean_auc
           #delete last best save or use deepcopy()
           savename = pjoin(args.logdir, f'{best_mean_auc}_{step}', "bit.pth.tar")
