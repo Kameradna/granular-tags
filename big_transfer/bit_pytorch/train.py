@@ -211,7 +211,11 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
     fn_count = np.sum(fn,0)
 
     TPR = tp_count / (tp_count + fn_count)
+    print(TPR)
+    print(TPR[0])
     FPR = fp_count / (fp_count + tn_count)
+    print(FPR)
+    print(FPR[0])
     for label in range(len(pos_weights)):
       indices[label].append((FPR[label],TPR[label]))
 
