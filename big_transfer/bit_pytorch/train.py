@@ -23,7 +23,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torchvision as tv
-import torchvision.models as models
+import torchvision.models as pymodels
 from torch.utils.data import Dataset
 
 import bit_pytorch.fewshot as fs
@@ -328,7 +328,7 @@ def main(args):
   train_set, valid_set, train_loader, valid_loader = mktrainval(args, logger)
   
   if args.chexpert:
-    model = models.densenet121(pretrained=False)
+    model = pymodels.densenet121(pretrained=False)
     num_ftrs = model.fc.in_features
     # Here the size of each output sample is set to 2.
     # Alternatively, it can be generalized to nn.Linear(num_ftrs, len(class_names)).
