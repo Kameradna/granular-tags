@@ -9,9 +9,9 @@ import numpy as np
 import json
 
 #adapted radically from the negbio2 label extractor to csv tool
-POSITIVE = 1
-NEGATIVE = 0
-UNCERTAIN = 1
+POSITIVE = 0.9999
+NEGATIVE = 0.0001
+UNCERTAIN = 0.9999
 
 # Misc. constants
 UNCERTAINTY = "uncertainty"
