@@ -211,26 +211,29 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
     fp_count = np.sum(fp,0)
     print(fp_count)
     tn_count = np.sum(tn,0)
+    print(tn_count)
     fn_count = np.sum(fn,0)
+    print(fn_count)
 
 
     print((tp_count + fn_count)[0])
     TPR = tp_count / (tp_count + fn_count)
     x = np.isnan(TPR)
     TPR[x] = 0
-    print(TPR)
     print(TPR[0])
     FPR = fp_count / (fp_count + tn_count)
     x = np.isnan(FPR)
     FPR[x] = 0
-    print(FPR)
     print(FPR[0])
     for label in range(len(pos_weights)):
       indices[label].append((FPR[0][label],TPR[0][label]))
 
   for label in range(len(pos_weights)):
     for sensitivity in range(len(indices[label])):
-      pt2 = indices[label][sensitivity-1] if sensitivity > 0 else (-1,0)#at sensitivity == 0, (really sensitivity at 0) then the precision and FPR should be 0,0
+      try:
+        pt2 = indices[label][sensitivity-1]#at sensitivity == 0, (really sensitivity at 0) then the precision and FPR should be 0,0
+      except:
+        continue
       pt1 = indices[label][sensitivity]
       print(pt2)
       print(pt1)
@@ -238,6 +241,7 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
   mean_auc = np.mean(list(area_by_label.values()))
   print(mean_auc)
   model.train()
+  exit("There is some issue with the AUC, it is reporting ~0.5 no matter what, there is also a great number of 0,-1 instances.")
   return mean_auc
 
 def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights):
