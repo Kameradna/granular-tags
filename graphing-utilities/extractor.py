@@ -12,11 +12,21 @@ def get_info_from_log(filename):
     training_loss = []
     lr = []
 
-    validationstep = []
-    validationtime = []
-    validationloss = []
-    top1 = []
-    top5 = []
+    validation_step = []
+    validation_time = []
+    validation_loss = []
+    validation_precision = []
+    validation_recall = []
+    validation_accuracy = []
+    validation_specificity = []
+    validation_bal_accuracy = []
+    validation_f1 = []
+    validation_cardinality = []
+    validation_density = []
+    validation_naive_accuracy = []
+    validation_hamming_loss = []
+    validation_adjusted_accuracy = []
+    validation_exact_match = []
 
     with open(filename, 'r') as f:
         for line in f:
@@ -35,41 +45,78 @@ def get_info_from_log(filename):
             elif 'step' not in line:
                 if 'Validation' in line and 'Validation@end' not in line:
                     linef = line.split()
+                    if "Mean_precision" in linef:
+                        validation_precision.append(linef.strip("Mean_precision=").strip(','))
+                    elif "Mean_recall" in linef:
+                        validation_recall.append(linef.strip("Mean_recall=").strip(','))
+                    elif "Mean_accuracy" in linef:
+                        validation_accuracy.append(linef.strip("Mean_accuracy=").strip(','))
+                    elif "Mean_specificity" in linef:
+                        validation_specificity.append(linef.strip("Mean_specificity=").strip(','))
+                    elif "Mean_balanced_accuracy" in linef:
+                        validation_bal_accuracy.append(linef.strip("Mean_balanced_accuracy=").strip(','))
+                    elif "Mean_F1 score" in linef:
+                        validation_f1.append(linef.strip("Mean_F1_score=").strip(','))
+                    elif "Label_cardinality" in linef:
+                        validation_cardinality.append(linef.strip("Label_cardinality=").strip(','))
+                    elif "Label_density" in linef:
+                        validation_density.append(linef.strip("Label_density=").strip(','))
+                    elif "Naive_accuracy" in linef:
+                        validation_naive_accuracy.append(linef.strip("Naive_accuracy=").strip(','))
+                    elif "Hamming_loss" in linef:
+                        validation_hamming_loss.append(linef.strip("Hamming_loss=").strip(','))
+                    # elif "Jaccard index {jaccard_index:.2%}, "
+                    elif "Adjusted_accuracy" in linef:
+                        validation_adjusted_accuracy.append(linef.strip("Adjusted_accuracy=").strip(','))
+                    elif "Exact_match" in linef:
+                        validation_exact_match.append(linef.strip("Exact_match=").strip(','))
+                    elif "Mean_loss" in linef:
+                        validation_loss.append(linef.strip("Mean_loss=").strip(','))
+
                     seconds = f'{linef[1][0:8]}.{linef[1][9:]}'
-                    validationtime.append(datetime.fromisoformat(f'{linef[0]} {seconds}'))
-                    validationloss.append(linef[6].strip(','))
-                    top1.append(linef[8].strip('%,'))
-                    top5.append(linef[10].strip('%,'))
-                    validationstep.append(linef[4].strip("Validation@"))
+                    validation_time.append(datetime.fromisoformat(f'{linef[0]} {seconds}'))
+                    validation_loss.append(linef[6].strip(','))
+                    
+                    validation_step.append(linef[4].strip("Validation@").strip(','))
                 elif 'Namespace' in line:
                     header = line
 
-    df1 = pd.DataFrame({
+    training_data = pd.DataFrame({
                     'Time':time,
                     'Training loss':pd.to_numeric(training_loss, errors='coerce'),
                     'Learning rate':pd.to_numeric(lr, errors='coerce'),
                     'Training step':pd.to_numeric(training_step, errors='coerce')
                     },
                     index=training_step)
-    # print(df1)
-    # print(df1.dtypes)
+    # print(training_data)
+    # print(training_data.dtypes)
 
-    df2 = pd.DataFrame({
-                    'Time':validationtime,
-                    'Validation loss':pd.to_numeric(validationloss, errors='coerce'),
-                    'Top-1 Accuracy':pd.to_numeric(top1, errors='coerce'),
-                    'Top-5 Accuracy':pd.to_numeric(top5, errors='coerce')
+    validation_data = pd.DataFrame({
+                    'Time':validation_time,
+                    'Validation loss':pd.to_numeric(validation_loss, errors='coerce'),
+                    'Precision':pd.to_numeric(validation_precision, errors='coerce'),
+                    'Recall':pd.to_numeric(validation_recall, errors='coerce'),
+                    'Accuracy':pd.to_numeric(validation_accuracy, errors='coerce'),
+                    'Specificity':pd.to_numeric(validation_specificity, errors='coerce'),
+                    'Balanced Accuracy':pd.to_numeric(validation_bal_accuracy, errors='coerce'),
+                    'F1':pd.to_numeric(validation_f1, errors='coerce'),
+                    'Dataset Cardinality':pd.to_numeric(validation_cardinality, errors='coerce'),
+                    'Label Density':pd.to_numeric(validation_density, errors='coerce'),
+                    'Naive Accuracy':pd.to_numeric(validation_naive_accuracy, errors='coerce'),
+                    'Hamming loss':pd.to_numeric(validation_hamming_loss, errors='coerce'),
+                    'Adjusted Accuracy':pd.to_numeric(validation_adjusted_accuracy, errors='coerce'),
+                    'Exact matches':pd.to_numeric(validation_exact_match, errors='coerce'),
                     },
-                    index=validationstep)
-    return df1, df2, header
+                    index=validation_step)
+    return training_data, validation_data, header
 
-    # print(df2)
+    # print(validation_data)
     # print(header)
-    # print(df2.dtypes)
+    # print(validation_data.dtypes)
 
-    # # df1.cumsum()
+    # # training_data.cumsum()
     # plt.figure()
-    # plotfig = df1.plot(x='Training step',y=['Training loss', "Learning rate"])
+    # plotfig = training_data.plot(x='Training step',y=['Training loss', "Learning rate"])
     # plt.savefig(f"hey.png")
 
 def plot_multi(data, cols=None, spacing=.1, **kwargs):

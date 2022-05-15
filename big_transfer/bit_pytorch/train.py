@@ -208,7 +208,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights
       with chrono.measure("eval fprop"):
         logits = model(x)
         # print(logits)
-        c = torch.nn.BCEWithLogitsLoss(pos_weight=torch.Tensor(pos_weights).to(device))(logits, y)
+        c = torch.nn.BCEWithLogitsLoss()(logits, y)#pos_weight=torch.Tensor(pos_weights).to(device)
         #we need to compare logits and y
         sensitivity = 0.5
         sens_tensor = torch.full(logits.size(),sensitivity).to(device, non_blocking=True)
@@ -282,20 +282,22 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights
   print(datastack)
   print(np.mean(loss))
 
-  logger.info(f"Mean precision {precision:.2%}, "
-              f"Mean recall {recall:.2%}, "
-              f"Mean accuracy {accuracy:.2%}, "
-              f"Mean specificity {specificity:.2%}, "
-              f"Mean balanced accuracy {balanced_accuracy:.2%}, "
-              f"Mean F1 score {f1:.2%}, \n"
+  logger.info(f"Validation@{step}, "
+              f"Mean_loss={np.mean(loss)}, "
+              f"Mean_precision={precision:.2%}, "
+              f"Mean_recall={recall:.2%}, "
+              f"Mean_accuracy={accuracy:.2%}, "
+              f"Mean_specificity={specificity:.2%}, "
+              f"Mean_balanced_accuracy={balanced_accuracy:.2%}, "
+              f"Mean_F1 score={f1:.2%}, "
 
-              f"Label cardinality {label_cardinality:.2f}, "
-              f"Label density {label_density:.2%}, "
-              f"Naive accuracy {naive_accuracy:.2%},"
-              f"Hamming loss {hamming_mean_loss:.2%}, "
+              f"Label_cardinality={label_cardinality:.2f}, "
+              f"Label_density={label_density:.2%}, "
+              f"Naive_accuracy={naive_accuracy:.2%},"
+              f"Hamming_loss={hamming_mean_loss:.2%}, "
               # f"Jaccard index {jaccard_index:.2%}, "
-              f"Adjusted accuracy {adjusted_accuracy:.2%}, "
-              f"Exact match {exact_match:.1f}"
+              f"Adjusted_accuracy={adjusted_accuracy:.2%}, "
+              f"Exact_match={exact_match:.1f}"
               )
   logger.flush()
   return 0
@@ -349,7 +351,7 @@ def main(args):
 
   # Note: no weight-decay!
   if args.chexpert:
-    optim = torch.optim.Adam(model.parameters(),lr=0.0001,betas=(0.9,0.999))
+    optim = torch.optim.Adam(model.parameters(),lr=0.0001,betas=(0.9,0.999)) #*maybe lr is wrong*"
   else:  
     optim = torch.optim.SGD(model.parameters(), lr=0.003, momentum=0.9)
 
@@ -429,7 +431,7 @@ def main(args):
         accum_steps += 1
 
       accstep = f" ({accum_steps}/{args.batch_split})" if args.batch_split > 1 else ""
-      logger.info(f"[step {step}{accstep}]: loss={c_num:.5f} (lr={lr:.1e}) *maybe lr is wrong*")  # pylint: disable=logging-format-interpolation
+      logger.info(f"[step {step}{accstep}]: loss={c_num:.5f} (lr={lr:.1e})")  # pylint: disable=logging-format-interpolation
       logger.flush()
 
       # Update params

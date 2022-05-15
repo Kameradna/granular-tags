@@ -1,3 +1,11 @@
+""""
+
+This file is part of the suite of provided scripts to assist in summarising and presenting the training and validation statistics
+from the granular-tags tool.
+
+Run summarise.py with relevant command line arguments for generation of summary documents in the same directory as the logs.
+
+"""
 import os
 
 from certifi import where
@@ -43,7 +51,7 @@ for folder in os.listdir(args.log_dir):
         plt.close()
 
         plt.figure()
-        extractor.plot_multi(validation[['Validation loss', 'Top-1 Accuracy', 'Top-5 Accuracy']],figsize=(10,5))
+        extractor.plot_multi(validation['Validation loss', 'Precision', 'Recall','Accuracy','Specificity','Balanced Accuracy','F1','Dataset Cardinality', 'Label density','Naive Accuracy','Hamming loss','Adjusted accuracy','Exact matches'],figsize=(20,10))
         plt.tight_layout()
         plt.savefig(f"{full_path}/validation_curves_{folder}_{this_run_info}.png")
         plt.close()
@@ -52,12 +60,12 @@ for folder in os.listdir(args.log_dir):
         os.rename(full_path,new_dir_path)
 
         if validation.empty != True:
-            this_run_final_validation = validation['Top-1 Accuracy'][-1]
-            if this_run_final_validation > highest_validation_accuracy:
-                highest_validation_accuracy = this_run_final_validation
+            this_run_final_f1 = validation['F1'][-1]
+            if this_run_final_f1 > highest_validation_f1:
+                highest_validation_f1 = this_run_final_f1
                 highest_validation_path = new_dir_path
 
-            final_validation_by_hyperparam.append({'Final validation accuracy':pd.to_numeric(this_run_final_validation, errors='coerce'),'Batch size':pd.to_numeric(batch[6:], errors='coerce'),'Batch splitting divisor':pd.to_numeric(batch_split[12:]),'Examples per class':pd.to_numeric(examples_per_class[19:], errors='coerce'),'Base learning rate':pd.to_numeric(base_lr[8:], errors='coerce')})
+            final_validation_by_hyperparam.append({'Final validation f1':pd.to_numeric(this_run_final_f1, errors='coerce'),'Batch size':pd.to_numeric(batch[6:], errors='coerce'),'Batch splitting divisor':pd.to_numeric(batch_split[12:]),'Examples per class':pd.to_numeric(examples_per_class[19:], errors='coerce'),'Base learning rate':pd.to_numeric(base_lr[8:], errors='coerce')})
 
         # elif validation.empty:
         #     if args.delete_old:
