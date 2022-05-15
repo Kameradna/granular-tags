@@ -426,6 +426,7 @@ def main(args):
           c = cri(logits, y)
         print('here?')
         c_num = float(c.item.cpu().numpy()) # Also ensures a sync point.
+        print('but not here?')
 
       # Accumulate grads
       with chrono.measure("grads"):
