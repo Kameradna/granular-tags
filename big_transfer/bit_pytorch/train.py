@@ -105,11 +105,14 @@ def recycle(iterable):
 
 def mktrainval(args, logger):
   """Returns train and validation datasets."""
-  precrop, crop = bit_hyperrule.get_resolution_from_dataset(args.dataset)
+  if args.chexpert:
+    precrop, crop = (340, 320)#vaguely approximating the ratio from bit
+  else:
+    precrop, crop = bit_hyperrule.get_resolution_from_dataset(args.dataset)
   train_tx = tv.transforms.Compose([
       tv.transforms.Resize((precrop, precrop)),
       tv.transforms.RandomCrop((crop, crop)),
-      tv.transforms.RandomHorizontalFlip(),
+      # tv.transforms.RandomHorizontalFlip(), #destroys semantic information
       tv.transforms.ToTensor(),
       tv.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
   ])
