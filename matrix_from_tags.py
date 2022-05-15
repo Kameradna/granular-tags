@@ -11,7 +11,7 @@ import json
 #adapted radically from the negbio2 label extractor to csv tool
 POSITIVE = 1
 NEGATIVE = 0
-UNCERTAIN = 1
+UNCERTAIN = 0.5
 
 # Misc. constants
 UNCERTAINTY = "uncertainty"
@@ -63,27 +63,38 @@ def load_xml(xml_dir): #generates dictionary of lists with keys being docs, list
 
 def matrix_from_tags(descriptor_dict):
     unique_tags_list = []
-    unique_count = {}
+    unique_mention = {}
+    unique_pos = {}
+    unique_neg = {}
+    unique_uncertain = {}
     print("Generating unique UMLS term list...")
     for uid in descriptor_dict: #for docs with findings, add unique UMLS terms to the list of known UMLS terms
         if descriptor_dict[uid] != []:
             for descriptor,classification in descriptor_dict[uid]:
                 if descriptor not in unique_tags_list:
                     unique_tags_list.append(descriptor)
-                    unique_count[descriptor] = 1
+                    unique_mention[descriptor] = 1
+                    unique_pos[descriptor] = 1 if classification == 1 else 0
+                    unique_neg[descriptor] = 1 if classification == 0 else 0
+                    unique_uncertain[descriptor] = 1 if classification == 0.5 else 0
                 else:
-                    unique_count[descriptor] += 1
+                    unique_mention[descriptor] += 1
+                    unique_pos[descriptor] += 1 if classification == 1 else 0
+                    unique_neg[descriptor] += 1 if classification == 0 else 0
+                    unique_uncertain[descriptor] += 1 if classification == 0.5 else 0
+
     
     #truncate unique tags by a certain threshold number
     print(f'{len(unique_tags_list)} unique tags before truncating...')
-    for descriptor in unique_count.keys():
-        if unique_count[descriptor] < args.min_unique_tags:
+    for descriptor in unique_tags_list:
+        if unique_mention[descriptor] < args.min_unique_tags:
             unique_tags_list.remove(descriptor)
             print(f'Removing {descriptor} from tag list')
     print(f'{len(unique_tags_list)} unique tags after truncating...')
 
-    for descriptor in sorted(unique_count):
-        print(f"{descriptor}& {unique_count[descriptor]}\\\\")
+    print("Descriptor & Unique Mentions & Unique Positive Classifications & Unique Negative Classifications & Unique Uncertain Classifications\\\\")
+    for descriptor in sorted(unique_mention):
+        print(f"{descriptor}& {unique_mention[descriptor]}&{unique_pos[descriptor]}&{unique_neg[descriptor]}&{unique_uncertain[descriptor]}\\\\")
     
     with open(f'{args.save_dir}/unique_tags_list.json','w') as f:
         print(f'Dumping ordered tags list to {args.save_dir}/unique_tags_list.json')
