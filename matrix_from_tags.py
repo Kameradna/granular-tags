@@ -81,6 +81,9 @@ def matrix_from_tags(descriptor_dict):
             unique_tags_list.remove(descriptor)
             print(f'Removing {descriptor} from tag list')
     print(f'{len(unique_tags_list)} unique tags after truncating...')
+
+    for descriptor in unique_count:
+        print(f"{descriptor}, {unique_count[descriptor]}")
     
     with open(f'{args.save_dir}/unique_tags_list.json','w') as f:
         print(f'Dumping ordered tags list to {args.save_dir}/unique_tags_list.json')
