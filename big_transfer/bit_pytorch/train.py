@@ -207,7 +207,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights
       # compute output, measure accuracy and record loss.
       with chrono.measure("eval fprop"):
         logits = model(x)
-        print(logits)
+        # print(logits)
         c = torch.nn.BCEWithLogitsLoss(pos_weight=torch.Tensor(pos_weights).to(device))(logits, y)
         #we need to compare logits and y
         sensitivity = 0.5
@@ -406,8 +406,8 @@ def main(args):
           for param_group in optim.param_groups:
             param_group["lr"] = lr
         elif args.chexpert:
+          lr = 0.0001
           if step > 3*len(train_set)/args.batch:
-            lr = 0.0001
             break
 
         if mixup > 0.0:
