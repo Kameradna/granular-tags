@@ -425,7 +425,7 @@ def main(args):
         else:
           c = cri(logits, y)
         print('here?')
-        c_num = float(c.item.cpu().numpy()) # Also ensures a sync point.
+        c_num = c.item.cpu().numpy() # Also ensures a sync point.
         print('but not here?')
 
       # Accumulate grads
