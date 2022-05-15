@@ -466,7 +466,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-  parser = bit_common.argparser()#models.KNOWN_MODELS.keys()
+  parser = bit_common.argparser(models.KNOWN_MODELS.keys())
   parser.add_argument("--datadir", required=True,
                       help="Path to the ImageNet data folder, preprocessed for torchvision.")
   parser.add_argument("--workers", type=int, default=8,
