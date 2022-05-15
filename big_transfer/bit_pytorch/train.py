@@ -182,7 +182,7 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
     indices[label] = []
     area_by_label[label] = []
   stepsize = 0.1
-  for sensitivity in range(0,1,stepsize):#low def first
+  for sensitivity in np.arange(0,1,stepsize):#low def first
     print(f'Calculating for sensitivity {sensitivity}')
     tp, fp, tn, fn = [],[],[],[]
     for b, (x, y) in enumerate(data_loader):#should be elements of size 1,len(tags)
