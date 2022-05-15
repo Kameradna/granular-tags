@@ -207,7 +207,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights
       # compute output, measure accuracy and record loss.
       with chrono.measure("eval fprop"):
         logits = model(x)
-        # print(logits)
+        print(logits)
         c = torch.nn.BCELoss()(logits, y)#pos_weight=torch.Tensor(pos_weights).to(device)
         #we need to compare logits and y
         sensitivity = 0.5
