@@ -209,8 +209,8 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights
         logits = model(x)
         print(logits)
         print(y)
-        c = torch.nn.BCEWithLogitsLoss()
-        c(logits, y)#pos_weight=torch.Tensor(pos_weights).to(device)
+        c = torch.nn.BCEWithLogitsLoss()(logits, y)
+        #pos_weight=torch.Tensor(pos_weights).to(device)
         #we need to compare logits and y
         sensitivity = 0
         sens_tensor = torch.full(logits.size(),sensitivity).to(device, non_blocking=True)
