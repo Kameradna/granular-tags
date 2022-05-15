@@ -209,10 +209,10 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights
         logits = model(x)
         print(logits)
         print(y)
-        c = torch.nn.BCELoss()
+        c = torch.nn.BCEWithLogitsLoss()
         c(logits, y)#pos_weight=torch.Tensor(pos_weights).to(device)
         #we need to compare logits and y
-        sensitivity = 0.5
+        sensitivity = 0
         sens_tensor = torch.full(logits.size(),sensitivity).to(device, non_blocking=True)
 
         preds = torch.ge(logits,sens_tensor)
@@ -324,7 +324,7 @@ def main(args):
   # Only good if sizes stay the same within the main loop!
   
   torch.backends.cudnn.benchmark = True
-  scaler = torch.cuda.amp.GradScaler(enabled=args.use_amp)
+  # scaler = torch.cuda.amp.GradScaler(enabled=args.use_amp)
 
   device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
   logger.info(f"Going to train on {device}")
@@ -397,40 +397,40 @@ def main(args):
         break
 
 
-      with torch.cuda.amp.autocast(enabled=args.use_amp): #MY ADDITION
-        # Schedule sending to GPU(s)
-        x = x.to(device, non_blocking=True)
-        y = y.to(device, non_blocking=True)
+      # with torch.cuda.amp.autocast(enabled=args.use_amp): #MY ADDITION
+      # Schedule sending to GPU(s)
+      x = x.to(device, non_blocking=True)
+      y = y.to(device, non_blocking=True)
 
-        # Update learning-rate, including stop training if over.
-        if args.chexpert == False:#chexpert does not update the learning rate
-          lr = bit_hyperrule.get_lr(step, len(train_set), args.base_lr)
-          if lr is None:
-            break
-          for param_group in optim.param_groups:
-            param_group["lr"] = lr
-        elif args.chexpert:
-          lr = 0.0001
-          if step > 3*len(train_set)/args.batch:
-            break
+      # Update learning-rate, including stop training if over.
+      if args.chexpert == False:#chexpert does not update the learning rate
+        lr = bit_hyperrule.get_lr(step, len(train_set), args.base_lr)
+        if lr is None:
+          break
+        for param_group in optim.param_groups:
+          param_group["lr"] = lr
+      elif args.chexpert:
+        lr = 0.0001
+        if step > 3*len(train_set)/args.batch:
+          break
 
+      if mixup > 0.0:
+        x, y_a, y_b = mixup_data(x, y, mixup_l)
+
+      # compute output
+      with chrono.measure("fprop"):
+        logits = model(x)
         if mixup > 0.0:
-          x, y_a, y_b = mixup_data(x, y, mixup_l)
-
-        # compute output
-        with chrono.measure("fprop"):
-          logits = model(x)
-          if mixup > 0.0:
-            c = mixup_criterion(cri, logits, y_a, y_b, mixup_l)
-          else:
-            c = cri(logits, y)
-          c_num = float(np.mean(c.data.cpu().numpy()))  # Also ensures a sync point.
+          c = mixup_criterion(cri, logits, y_a, y_b, mixup_l)
+        else:
+          c = cri(logits, y)
+        c_num = float(c.data.cpu().numpy()) # Also ensures a sync point.
 
       # Accumulate grads
       with chrono.measure("grads"):
-        scaler.scale(c / args.batch_split).backward()#MY ADDITION
-        #c.backward()#torch.ones_like(c) if reduction='none'
-        accum_steps += 1
+        # scaler.scale(c / args.batch_split).backward()#MY ADDITION
+        c.backward()#torch.ones_like(c) if reduction='none'
+        # accum_steps += 1
 
       accstep = f" ({accum_steps}/{args.batch_split})" if args.batch_split > 1 else ""
       logger.info(f"[step {step}{accstep}]: loss={c_num:.5f} (lr={lr:.1e})")  # pylint: disable=logging-format-interpolation
@@ -474,8 +474,8 @@ if __name__ == "__main__":
   parser.add_argument("--workers", type=int, default=8,
                       help="Number of background threads used to load data.")
   parser.add_argument("--no-save", dest="save", action="store_false")
-  parser.add_argument("--use_amp", dest="use_amp",action="store_true",
-                     help="Use Automated Mixed Precision to save potential memory and compute?")
+  # parser.add_argument("--use_amp", dest="use_amp",action="store_true",
+  #                    help="Use Automated Mixed Precision to save potential memory and compute?")
   parser.add_argument("--annodir", required=True, help="Where are the annotation files to load?")
   parser.add_argument("--chexpert", dest="chexpert", action="store_true",help="Run as the chexpert paper?")
   main(parser.parse_args())
