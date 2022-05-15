@@ -209,6 +209,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights
         logits = model(x)
         # print(logits)
         # print(y)
+        logits.clamp_(0,1)
         c = torch.nn.BCEWithLogitsLoss()(logits, y)
         #pos_weight=torch.Tensor(pos_weights).to(device)
         #we need to compare logits and y
@@ -376,7 +377,7 @@ def main(args):
 
   model.train()
   mixup = bit_hyperrule.get_mixup(len(train_set))
-  cri = torch.nn.BCELoss().to(device) #pos_weight=torch.Tensor(train_set.pos_weights)
+  cri = torch.nn.BCEWithLogitsLoss().to(device) #pos_weight=torch.Tensor(train_set.pos_weights)
 
   logger.info("Starting training!")
   chrono = lb.Chrono()
@@ -420,12 +421,13 @@ def main(args):
       # compute output
       with chrono.measure("fprop"):
         logits = model(x)
+        logits.clamp_(0,1)
         if mixup > 0.0:
           c = mixup_criterion(cri, logits, y_a, y_b, mixup_l)
         else:
           c = cri(logits, y)
         print('here?')
-        # c_num = c.item.cpu().numpy() # Also ensures a sync point.
+        c_num = c.item.cpu().numpy() # Also ensures a sync point.
         print('but not here?')
 
       # Accumulate grads
