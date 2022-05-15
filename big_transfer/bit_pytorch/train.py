@@ -171,7 +171,7 @@ def mktrainval(args, logger):
 def area_under_points(pt1,pt2):#pt2 is larger than pt1 in both dims, so area always positive
   x1,y1 = pt1
   x2,y2 = pt2
-  area = (y1+(y2-y1)/2)*(x2-x1)
+  area = (y1+(y2-y1)/2)*(x2-x1) if x2-x1 > 0 else 0
   return area
 
 def AUC(model,data_loader,device,args,step,pos_weights):#mine
@@ -217,14 +217,14 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
     print(FPR)
     print(FPR[0])
     for label in range(len(pos_weights)):
-      indices[label].append((FPR[label],TPR[label]))
+      indices[label].append((FPR[0][label],TPR[0][label]))
 
   for label in range(len(pos_weights)):
     for sensitivity in range(len(indices[label])):
-      pt1 = indices[label][sensitivity-1] if sensitivity > 0 else (-1,0)#at sensitivity == 0, (really sensitivity at 0) then the precision and FPR should be 0,0
-      pt2 = indices[label][sensitivity]
-      print(pt1)
+      pt2 = indices[label][sensitivity-1] if sensitivity > 0 else (-1,0)#at sensitivity == 0, (really sensitivity at 0) then the precision and FPR should be 0,0
+      pt1 = indices[label][sensitivity]
       print(pt2)
+      print(pt1)
       area_by_label[label] += area_under_points(pt1,pt2)
   mean_auc = np.mean(list(area_by_label.values()))
   print(mean_auc)
