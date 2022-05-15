@@ -180,7 +180,7 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
   area_by_label = {}
   for label in range(len(pos_weights)):
     indices[label] = []
-    area_by_label[label] = []
+    area_by_label[label] = 0
   stepsize = 0.1
   for sensitivity in np.arange(0,1,stepsize):#low def first
     print(f'Calculating for sensitivity {sensitivity}')
@@ -219,6 +219,8 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
     for sensitivity in range(len(indices[label])):
       pt1 = indices[label][sensitivity-1] if sensitivity > 0 else (-1,0)#at sensitivity == 0, (really sensitivity at 0) then the precision and FPR should be 0,0
       pt2 = indices[label][sensitivity]
+      print(pt1)
+      print(pt2)
       area_by_label[label] += area_under_points(pt1,pt2)
   mean_auc = np.mean(list(area_by_label.values()))
   model.train()
