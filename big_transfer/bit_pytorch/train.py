@@ -18,6 +18,7 @@
 # coding: utf-8
 from os.path import join as pjoin  # pylint: disable=g-importing-member
 import time
+import copy
 
 import numpy as np
 import torch
@@ -167,6 +168,64 @@ def mktrainval(args, logger):
 
   return train_set, valid_set, train_loader, valid_loader
 
+def area_under_points(pt1,pt2):#pt2 is larger than pt1 in both dims, so area always positive
+  x1,y1 = pt1
+  x2,y2 = pt2
+  area = (y1+(y2-y1)/2)*(x2-x1)
+  return area
+
+def AUC(model,data_loader,device,args,step,pos_weights):#mine
+  model.eval()
+  indices = {}
+  area_by_label = {}
+  for label in range(len(pos_weights)):
+    indices[label] = []
+    area_by_label[label] = []
+  stepsize = 0.1
+  for sensitivity in range(0,1,stepsize):#low def first
+    print(f'Calculating for sensitivity {sensitivity}')
+    tp, fp, tn, fn = [],[],[],[]
+    for b, (x, y) in enumerate(data_loader):#should be elements of size 1,len(tags)
+      with torch.no_grad():
+        x = x.to(device, non_blocking=True)
+        y = y.to(device, non_blocking=True)
+        logits = model(x)
+        logits.clamp_(0,1)
+        sensitivity = 0.5
+        sens_tensor = torch.full(logits.size(),sensitivity).to(device, non_blocking=True)
+        preds = torch.ge(logits,sens_tensor)
+        groundtruth = torch.ge(y,sens_tensor)#translates y to tensor
+        if torch.equal(preds,groundtruth):
+          exact_match += 1
+
+        TPn = torch.bitwise_and(groundtruth,preds).cpu().numpy()#vectors of size 1,len(tags)
+        FNn = torch.bitwise_and(groundtruth,torch.bitwise_not(preds)).cpu().numpy()
+        TNn = torch.bitwise_and(torch.bitwise_not(groundtruth),torch.bitwise_not(preds)).cpu().numpy()
+        FPn = torch.bitwise_and(torch.bitwise_not(groundtruth),preds).cpu().numpy()
+
+        tp.append(TPn)
+        fp.append(FPn)
+        tn.append(TNn)
+        fn.append(FNn)
+
+    tp_count = np.sum(tp,0)
+    fp_count = np.sum(fp,0)
+    tn_count = np.sum(tn,0)
+    fn_count = np.sum(fn,0)
+
+    TPR = tp_count / (tp_count + fn_count)
+    FPR = fp_count / (fp_count + tn_count)
+    for label in range(len(pos_weights)):
+      indices[label].append((FPR,TPR))
+
+  for label in range(len(pos_weights)):
+    for sensitivity in range(len(indices[label])):
+      pt1 = indices[label][sensitivity-1] if sensitivity > 0 else (-1,0)#at sensitivity == 0, (really sensitivity at 0) then the precision and FPR should be 0,0
+      pt2 = indices[label][sensitivity]
+      area_by_label[label] += area_under_points(pt1,pt2)
+  mean_auc = np.mean(list(area_by_label.values()))
+  model.train()
+  return mean_auc
 
 def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights):
   # switch to evaluate mode
@@ -242,7 +301,6 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights
     # measure elapsed time
     end = time.time()
 
-  model.train()
   tp_count = np.sum(tp)#sum across all samples
   print(tp_count)
   fp_count = np.sum(fp)
@@ -303,6 +361,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights
               f"Exact_match={exact_match:.1f}"
               )
   logger.flush()
+  model.train()
   return 0
 
 
@@ -351,6 +410,7 @@ def main(args):
   # Load it to CPU first as we'll move the model to GPU later.
   # This way, we save a little bit of GPU memory when loading.
   step = 0
+  best_mean_auc = 0
 
   # Note: no weight-decay!
   if args.chexpert:
@@ -450,15 +510,28 @@ def main(args):
         # Sample new mixup ratio for next batch
         mixup_l = np.random.beta(mixup, mixup) if mixup > 0 else 1
 
+        mean_auc = AUC(model,valid_loader,device,args,step,valid_set.pos_weights)
+        if mean_auc > best_mean_auc:
+          best_mean_auc = mean_auc
+          #delete last best save or use deepcopy()
+          savename = pjoin(args.logdir, f'{best_mean_auc}_{step}', "bit.pth.tar")
+          best_model_wts = copy.deepcopy(model.state_dict())
+
         # Run evaluation and save the model.
         if args.eval_every and step % args.eval_every == 0:
           run_eval(model, valid_loader, device, chrono, logger, args, step, train_set.pos_weights)
+          #save best AUC
           if args.save:
+            quicksave_model = copy.deepcopy(model.state_dict())
+            model.load_state_dict(best_model_wts)
             torch.save({
                 "step": step,
                 "model": model.state_dict(),
                 "optim" : optim.state_dict(),
-            }, savename) #may be able to hack this
+            }, savename)
+            model.load_state_dict(quicksave_model)
+          best_mean_auc = 0
+
 
       end = time.time()
 
