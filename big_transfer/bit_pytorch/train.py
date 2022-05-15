@@ -427,6 +427,7 @@ def main(args):
         else:
           c = cri(logits, y)
         print('here?')
+        print(c)
         c_num = c.item().cpu().numpy() # Also ensures a sync point.
         print('but not here?')
 
