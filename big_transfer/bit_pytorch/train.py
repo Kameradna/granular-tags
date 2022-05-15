@@ -210,10 +210,10 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
     tn_count = np.sum(tn,0)
     fn_count = np.sum(fn,0)
 
-    TPR = tp_count / (tp_count + fn_count) if np.any(np.equal((tp_count + fn_count),np.array([0]*len(pos_weights)))) else 0
+    TPR = tp_count / (tp_count + fn_count) if np.any(np.equal((tp_count + fn_count),np.array([0]*len(pos_weights)))) else np.array([0]*len(pos_weights)) #probably some issue if there is a 0 value
     print(TPR)
     print(TPR[0])
-    FPR = fp_count / (fp_count + tn_count) if np.any(np.equal((fp_count + tn_count),np.array([0]*len(pos_weights)))) else 0
+    FPR = fp_count / (fp_count + tn_count) if np.any(np.equal((fp_count + tn_count),np.array([0]*len(pos_weights)))) else np.array([0]*len(pos_weights))
     print(FPR)
     print(FPR[0])
     for label in range(len(pos_weights)):
