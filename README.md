@@ -64,6 +64,7 @@ pip install -r requirements3.txt
 pip install -U numpy #to avoid a later runtime error because negbio doesn't update their docs
 cd ..
 mkdir $OUTPUT_DIR #just in case
+#run txtify into this new folder
 python negbio2/negbio/negbio_pipeline.py text2bioc --output=$OUTPUT_DIR/all_together_find_ind.xml $TEXT_DIR/*.txt
 python negbio2/negbio/negbio_pipeline.py section_split --output=$OUTPUT_DIR/section_split $OUTPUT_DIR/all_together_find_ind.xml
 python negbio2/negbio/negbio_pipeline.py ssplit --output $OUTPUT_DIR/ssplit $OUTPUT_DIR/section_split/* --workers=8
