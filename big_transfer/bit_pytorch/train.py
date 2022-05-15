@@ -432,7 +432,7 @@ def main(args):
       with chrono.measure("grads"):
         # scaler.scale(c / args.batch_split).backward()#MY ADDITION
         (c/args.batch_split).backward()#torch.ones_like(c) if reduction='none'
-        # accum_steps += 1
+        accum_steps += 1
 
       accstep = f" ({accum_steps}/{args.batch_split})" if args.batch_split > 1 else ""
       logger.info(f"[step {step}{accstep}]: loss={c_num:.5f} (lr={lr:.1e})")  # pylint: disable=logging-format-interpolation
