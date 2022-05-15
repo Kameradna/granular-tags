@@ -40,6 +40,10 @@ for folder in os.listdir(args.log_dir):
 
         training, validation, header = extractor.get_info_from_log(f'{full_path}/train.log')
 
+        print(f'saving some csvs in {folder}')
+        pd.DataFrame.to_csv(training,os.pjoin(folder,'training.csv'))
+        pd.DataFrame.to_csv(validation,os.pjoin(folder,'validation.csv'))
+
         modeltype, base_lr, batch, batch_split, examples_per_class = extractor.make_summary_txt(full_path,validation,folder,args,header)
 
         this_run_info = f'{modeltype}_{base_lr}_{batch}_{batch_split}_{examples_per_class}'

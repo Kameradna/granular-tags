@@ -382,7 +382,7 @@ def main(args):
   mixup_l = np.random.beta(mixup, mixup) if mixup > 0 else 1
   end = time.time()
 
-  step_name = 'start'
+  step_name = '0'
   run_eval(model, valid_loader, device, chrono, logger, args, step_name, train_set.pos_weights)
 
 
