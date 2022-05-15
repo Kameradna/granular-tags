@@ -191,12 +191,9 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
         y = y.to(device, non_blocking=True)
         logits = model(x)
         logits.clamp_(0,1)
-        sensitivity = 0.5
         sens_tensor = torch.full(logits.size(),sensitivity).to(device, non_blocking=True)
         preds = torch.ge(logits,sens_tensor)
         groundtruth = torch.ge(y,sens_tensor)#translates y to tensor
-        if torch.equal(preds,groundtruth):
-          exact_match += 1
 
         TPn = torch.bitwise_and(groundtruth,preds).cpu().numpy()#vectors of size 1,len(tags)
         FNn = torch.bitwise_and(groundtruth,torch.bitwise_not(preds)).cpu().numpy()
