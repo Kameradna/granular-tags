@@ -205,7 +205,9 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
         tn.append(TNn)
         fn.append(FNn)
 
+    print(tp)
     tp_count = np.sum(tp,0)
+    print(tp_count)
     fp_count = np.sum(fp,0)
     tn_count = np.sum(tn,0)
     fn_count = np.sum(fn,0)
@@ -222,6 +224,7 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
     FPR[x] = 0
     print(FPR)
     print(FPR[0])
+    exit('Please see if the above makes sense')
     for label in range(len(pos_weights)):
       indices[label].append((FPR[0][label],TPR[0][label]))
 
