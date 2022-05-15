@@ -331,7 +331,8 @@ def main(args):
     model = pymodels.densenet121(pretrained=False)
     # Here the size of each output sample is set to 2.
     # Alternatively, it can be generalized to nn.Linear(num_ftrs, len(class_names)).
-    model.classifier.out_features = len(valid_set.classes)
+    num_features = model.classifier.in_features
+    model.classifier = nn.Linear(num_features, len(valid_set.classes))
     #normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) for any pretrained pytorch zoo models
   elif args.chexpert == False:
     logger.info(f"Loading model from {args.model}.npz")
