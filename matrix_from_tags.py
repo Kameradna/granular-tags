@@ -16,7 +16,7 @@ UNCERTAIN = 1
 # Misc. constants
 UNCERTAINTY = "uncertainty"
 NEGATION = "negation"
-OBSERVATION = "term"
+OBSERVATION = "observation"
 
 def category_test(category):#return bool for goodness
     #we shall test the category for goodness for our purposes. At this point (of writing, 3/5/22) we only know how to perform simple string tests.
@@ -42,13 +42,13 @@ def load_xml(xml_dir): #generates dictionary of lists with keys being docs, list
         for p in doc.passages:
             for annotation in p.annotations:
                 category = annotation.infons[OBSERVATION]
-                if category_test(category) == False:
-                    # print(f'ignoring {category}')
-                    continue #skip categories which are functionally meaningless for us
+                # if category_test(category) == False:
+                #     # print(f'ignoring {category}')
+                #     continue #skip categories which are functionally meaningless for us
                 # we want only patf, dsyn, neop and anab ['patf', 'dsyn', 'neop', 'anab']
-                if annotation.infons['semtype'] not in ['patf', 'dsyn']:#, 'neop', 'anab'
-                    print(f"ignoring {annotation.infons[OBSERVATION]}")
-                    continue
+                # if annotation.infons['semtype'] not in ['patf', 'dsyn']:#, 'neop', 'anab'
+                #     print(f"ignoring {annotation.infons[OBSERVATION]}")
+                #     continue
                 print(f'Woah it is {annotation.infons[OBSERVATION]}')
                 if NEGATION in annotation.infons:
                     doc_label_list.append((category,NEGATIVE))
