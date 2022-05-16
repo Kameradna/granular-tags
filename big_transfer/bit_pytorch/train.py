@@ -251,7 +251,6 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
   mean_auc = np.mean(list(area_by_label.values()))
   print(mean_auc)
   model.train()
-  exit("There is some issue with the AUC, it is reporting ~0.5 no matter what, there is also a great number of 0,-1 instances.")
   return mean_auc
 
 def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights):
