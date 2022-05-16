@@ -300,7 +300,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, dataset):
 
   end = time.time()
 
-  y_true, y_pred = None, None
+  y_true, y_logits = None, None
   for b, (x, y) in enumerate(data_loader):#should be elements of size 1,len(tags)
     with torch.no_grad():
       x = x.to(device, non_blocking=True)
