@@ -151,7 +151,7 @@ def mktrainval(args, logger):
   micro_batch_size = args.batch // args.batch_split
 
   valid_loader = torch.utils.data.DataLoader(
-      valid_set, batch_size=1, shuffle=False,
+      valid_set, batch_size=micro_batch_size, shuffle=False,
       num_workers=args.workers, pin_memory=True, drop_last=False)
 
   if micro_batch_size <= len(train_set):
@@ -487,7 +487,7 @@ def main(args):
   end = time.time()
 
   step_name = '0'
-  run_eval(model, valid_loader, device, chrono, logger, args, step_name, train_set.pos_weights)
+  # run_eval(model, valid_loader, device, chrono, logger, args, step_name, train_set.pos_weights)
 
 
   with lb.Uninterrupt() as u:
