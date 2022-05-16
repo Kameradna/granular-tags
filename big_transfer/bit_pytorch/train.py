@@ -178,6 +178,7 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
   model.eval()
   indices = {}
   area_by_label = {}
+  dead_flag = 0
   for label in range(len(pos_weights)):
     indices[label] = []
     area_by_label[label] = 0
@@ -186,6 +187,8 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
     print(f'Calculating for sensitivity {sensitivity}')
     tp, fp, tn, fn = None,None,None,None
     for b, (x, y) in enumerate(data_loader):#should be elements of size 1,len(tags)
+      if dead_flag == True:
+        break
       with torch.no_grad():
         x = x.to(device, non_blocking=True)
         y = y.to(device, non_blocking=True)
@@ -210,6 +213,12 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
     print(tp_count)
     fp_count = np.sum(fp,0)
     print(fp_count)
+
+    if tp_count.any() == False and fp_count.any() == False:
+      dead_flag = True #the sensitivity is too high for any classified positives, so no need to continue
+      print('No more tp or fp, early termination')
+      break
+
     tn_count = np.sum(tn,0)
     print(tn_count)
     fn_count = np.sum(fn,0)
@@ -259,7 +268,7 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
   mean_auc = np.mean(list(area_by_label.values()))
   print(mean_auc)
   model.train()
-  exit("line 269, auc good?")
+  exit("line 269, auc good, especially with the early termination?")
   return mean_auc
 
 def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights):
