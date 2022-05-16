@@ -270,7 +270,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, dataset):
   logger.flush()
   end = time.time()
 
-  y_true, y_logits, loss = None, None, None
+  y_true, y_logits, loss = None, None, 
   for b, (x, y) in enumerate(data_loader):#should be elements of size 1,len(tags)
     with torch.no_grad():
       x = x.to(device, non_blocking=True)
@@ -287,15 +287,13 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, dataset):
         groundtruth = torch.ge(y,0.5)#translates y to tensor
         y_true = groundtruth.cpu().numpy() if isinstance(y_true, type(None)) else np.concatenate((y_true,groundtruth.cpu().numpy()))
         y_logits = logits.cpu().numpy() if isinstance(y_logits, type(None)) else np.concatenate((y_logits,logits.cpu().numpy()))
-        print(loss)
-        print(c_num)
-        loss = c_num if isinstance(loss, type(None)) else np.concatenate((loss,c_num))
+        print(type(c_num))
+        loss = c_num if isinstance(loss, type(None)) else np.append(loss,c_num)
 
     # measure elapsed time
     end = time.time()
   
-  print(loss)
-  loss = np.sum(loss)
+  loss = np.mean(loss)
   auroc = metrics.roc_auc_score(y_true,y_logits,average=None,labels=dataset.classes)#should we pass in labels?
   y_pred = y_logits > 0.5
 
