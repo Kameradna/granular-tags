@@ -45,10 +45,10 @@ class IUXrayDataset(Dataset):#Adapted from NUSdataset and my own work
         self.transforms = transforms
         with open(f'{anno_path}/unique_tags_list.json') as f:
           json_data = json.load(f)
-        print(json_data)
+        # print(json_data)
         # print(type(json_data))
         self.classes = json_data
-        print(len(self.classes))
+        # print(len(self.classes))
         if train:
           anno_path = f'{anno_path}/train.json'
         else:
@@ -59,20 +59,20 @@ class IUXrayDataset(Dataset):#Adapted from NUSdataset and my own work
         self.imgs = list(json_data.keys())
         # print(self.imgs)
         self.annos = list(json_data.values())
-        print(type(self.annos))
+        # print(type(self.annos))
         each_pos = [0]*len(self.annos[0])
         for sample in range(len(self.annos)):
           each_pos = [each_pos[x]+self.annos[sample][x] for x in range(len(self.annos[sample]))]
         each_neg = [len(self.imgs)-each_pos[x] for x in range(len(each_pos))]
-        print(each_pos)
-        print(len(each_pos))
-        print(each_neg)
-        print(len(each_neg))
+        # print(each_pos)
+        # print(len(each_pos))
+        # print(each_neg)
+        # print(len(each_neg))
         each_pos = [100000000 if each_pos[x] == 0 else each_pos[x] for x in range(len(each_pos))]#really janky workaround for my random sampling of the training set having 0 positive examples of a class, basically just 
         self.pos_weights = [each_neg[x]/each_pos[x] for x in range(len(each_pos))]
-        print(self.pos_weights)
-        print(len(self.pos_weights))
-        print('tick')
+        # print(self.pos_weights)
+        # print(len(self.pos_weights))
+        # print('tick')
         self.data_path = data_path
         for img in range(len(self.imgs)):
           vector = self.annos[img]
@@ -158,109 +158,6 @@ def mktrainval(args, logger):
         sampler=torch.utils.data.RandomSampler(train_set, replacement=True, num_samples=micro_batch_size))
 
   return train_set, valid_set, train_loader, valid_loader
-
-def area_under_points(pt1,pt2):#pt2 is larger than pt1 in both dims, so area always positive
-  x1,y1 = pt1
-  x2,y2 = pt2
-  area = (y1+(y2-y1)/2)*(x2-x1) if x2-x1 > 0 else 0
-  return area
-
-def AUC(model,data_loader,device,args,step,dataset):#mine
-  model.eval()
-  indices = {}
-  area_by_label = {}
-  dead_flag = 0
-  for label in range(len(dataset.classes)):
-    indices[label] = []
-    area_by_label[label] = 0
-  resolution = 10
-  for sensitivity in np.linspace(0,1,resolution):#low def first
-    print(f'Calculating for sensitivity {sensitivity}')
-    tp, fp, tn, fn = None,None,None,None
-    for b, (x, y) in enumerate(data_loader):#should be elements of size 1,len(tags)
-      if dead_flag == True:
-        break
-      with torch.no_grad():
-        x = x.to(device, non_blocking=True)
-        y = y.to(device, non_blocking=True)
-        logits = model(x)
-        logits.clamp_(0,1)
-        sens_tensor = torch.full(logits.size(),sensitivity).to(device, non_blocking=True)
-        preds = torch.ge(logits,sens_tensor)
-        groundtruth = torch.ge(y,0.5)#translates y to tensor
-
-        TPn = torch.bitwise_and(groundtruth,preds).cpu().numpy()#vectors of size 1,len(tags)
-        FNn = torch.bitwise_and(groundtruth,torch.bitwise_not(preds)).cpu().numpy()
-        TNn = torch.bitwise_and(torch.bitwise_not(groundtruth),torch.bitwise_not(preds)).cpu().numpy()
-        FPn = torch.bitwise_and(torch.bitwise_not(groundtruth),preds).cpu().numpy()
-
-
-        tp = TPn if isinstance(tp, type(None)) else np.concatenate((tp,TPn))
-        fp = FPn if isinstance(fp, type(None)) else np.concatenate((fp,FPn))
-        tn = TNn if isinstance(tn, type(None)) else np.concatenate((tn,TNn))
-        fn = FNn if isinstance(fn, type(None)) else np.concatenate((fn,FNn))
-
-    tp_count = np.sum(tp,0)
-    print(tp_count)
-    fp_count = np.sum(fp,0)
-    print(fp_count)
-
-    if tp_count.any() == False and fp_count.any() == False:
-      dead_flag = True #the sensitivity is too high for any classified positives, so no need to continue
-      print('No more tp or fp, early termination')
-      break
-
-    tn_count = np.sum(tn,0)
-    print(tn_count)
-    fn_count = np.sum(fn,0)
-    print(fn_count)
-
-    precision = tp_count/(tp_count+fp_count)
-    x = np.isnan(precision)
-    precision[x] = 0
-    recall = tp_count/(tp_count+fn_count)
-    x = np.isnan(recall)
-    recall[x] = 0
-    accuracy = (tp_count+tn_count)/(tp_count+fp_count+tn_count+fn_count)
-    x = np.isnan(accuracy)
-    accuracy[x] = 0
-    f1 = 2*(precision*recall)/(precision+recall)
-    x = np.isnan(f1)
-    f1[x] = 0
-
-    print(f'precision={precision}')
-    print(f'recall={recall}')
-    print(f'accuracy={accuracy}')
-    print(f'f1={f1}')
-
-    TPR = tp_count / (tp_count + fn_count)
-    x = np.isnan(TPR)
-    TPR[x] = 0
-    print(TPR)
-    FPR = fp_count / (fp_count + tn_count)
-    x = np.isnan(FPR)
-    FPR[x] = 0
-    print(FPR)
-    for label in range(len(dataset.classes)):
-      indices[label].append((FPR[label],TPR[label]))
-
-  print(indices)
-  for label in range(len(dataset.classes)):
-    for sensitivity in range(len(indices[label])):
-      try:
-        pt2 = indices[label][sensitivity-1]#at sensitivity == 0, (really sensitivity at 0) then the precision and FPR should be 0,0
-      except:
-        continue
-      pt1 = indices[label][sensitivity]
-      # print(pt2)
-      # print(pt1)
-      area_by_label[label] += area_under_points(pt1,pt2)
-  print(area_by_label)
-  mean_auc = np.mean(list(area_by_label.values()))
-  print(mean_auc)
-  model.train()
-  exit("line 269, auc good, especially with the early termination?")
-  return mean_auc
 
 def run_eval(model, data_loader, device, chrono, logger, args, step, dataset):
   # switch to evaluate mode
