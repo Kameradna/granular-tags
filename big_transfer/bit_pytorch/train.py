@@ -336,20 +336,6 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, dataset):
   model.train()
   return np.mean(auroc)
 
-
-# def mixup_data(x, y, l):
-#   """Returns mixed inputs, pairs of targets, and lambda"""
-#   indices = torch.randperm(x.shape[0]).to(x.device)
-
-#   mixed_x = l * x + (1 - l) * x[indices]
-#   y_a, y_b = y, y[indices]
-#   return mixed_x, y_a, y_b
-
-
-# def mixup_criterion(criterion, pred, y_a, y_b, l):
-#   return l * criterion(pred, y_a) + (1 - l) * criterion(pred, y_b)
-
-
 def main(args):
   logger = bit_common.setup_logger(args)
   # Lets cuDNN benchmark conv implementations and choose the fastest.
@@ -408,7 +394,6 @@ def main(args):
   optim.zero_grad()
 
   model.train()
-  # mixup = bit_hyperrule.get_mixup(len(train_set))
   cri = torch.nn.BCELoss().to(device) #pos_weight=torch.Tensor(train_set.pos_weights)
 
   logger.info("Starting training!")
@@ -447,16 +432,9 @@ def main(args):
         if step > 3*len(train_set)/args.batch:
           break
 
-      # if mixup > 0.0:
-      #   x, y_a, y_b = mixup_data(x, y, mixup_l)
-
-      # compute output
       with chrono.measure("fprop"):
         logits = model(x)
         logits.clamp_(0,1)
-        # if mixup > 0.0:
-        #   c = mixup_criterion(cri, logits, y_a, y_b, mixup_l)
-        # else:
         c = cri(logits, y)
         c_num = float(c.data.cpu().numpy()) # Also ensures a sync point.
 
@@ -479,10 +457,8 @@ def main(args):
           optim.zero_grad(set_to_none=True)#my edit
         step += 1
         accum_steps = 0
-        # Sample new mixup ratio for next batch
-        # mixup_l = np.random.beta(mixup, mixup) if mixup > 0 else 1
 
-        mean_auc = AUC(model,valid_loader,device,args,step,valid_set)
+        mean_auc = run_eval(model, valid_loader, device, chrono, logger, args, step, valid_set)
         if mean_auc > best_mean_auc:
           print("BIG MONEY BIG MONEY BIG MONEY BIG MONEY")
           best_mean_auc = mean_auc
@@ -492,7 +468,6 @@ def main(args):
 
         # Run evaluation and save the model.
         if args.eval_every and step % args.eval_every == 0:
-          run_eval(model, valid_loader, device, chrono, logger, args, step, valid_set)
           #save best AUC
           if args.save:
             quicksave_model = copy.deepcopy(model.state_dict())
@@ -504,7 +479,6 @@ def main(args):
             }, savename)
             model.load_state_dict(quicksave_model)
           best_mean_auc = 0
-
 
       end = time.time()
 
