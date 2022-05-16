@@ -201,7 +201,7 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
         FPn = torch.bitwise_and(torch.bitwise_not(groundtruth),preds).cpu().numpy()
 
         print('before')
-        print(len(tp))
+        print(len(tp)) if isinstance(tp,type(np.ndarray)) else print('tp is not array yet')
         tp = TPn if isinstance(tp, type(None)) else np.concatenate((tp,TPn))
         print('after')
         print(len(tp))
