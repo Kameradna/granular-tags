@@ -215,6 +215,16 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
     fn_count = np.sum(fn,0)
     print(fn_count)
 
+    precision = tp_count/(tp_count+fp_count)
+    recall = tp_count/(tp_count+fn_count)
+    accuracy = (tp_count+tn_count)/(tp_count+fp_count+tn_count+fn_count)
+    f1 = 2*(precision*recall)/(precision+recall)
+
+    print(f'precision={precision}')
+    print(f'recall={recall}')
+    print(f'accuracy={accuracy}')
+    print(f'f1={f1}')
+
     TPR = tp_count / (tp_count + fn_count)
     x = np.isnan(TPR)
     TPR[x] = 0
@@ -234,9 +244,10 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
       except:
         continue
       pt1 = indices[label][sensitivity]
-      print(pt2)
-      print(pt1)
+      # print(pt2)
+      # print(pt1)
       area_by_label[label] += area_under_points(pt1,pt2)
+  print(area_by_label)
   mean_auc = np.mean(list(area_by_label.values()))
   print(mean_auc)
   model.train()
