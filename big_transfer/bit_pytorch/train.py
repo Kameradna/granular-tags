@@ -184,7 +184,7 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
   resolution = 10
   for sensitivity in np.linspace(0,1,resolution):#low def first
     print(f'Calculating for sensitivity {sensitivity}')
-    tp, fp, tn, fn = None,[],[],[]
+    tp, fp, tn, fn = None,None,None,None
     for b, (x, y) in enumerate(data_loader):#should be elements of size 1,len(tags)
       with torch.no_grad():
         x = x.to(device, non_blocking=True)
