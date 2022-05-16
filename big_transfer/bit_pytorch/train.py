@@ -98,7 +98,7 @@ def recycle(iterable):
 def mktrainval(args, logger):
   """Returns train and validation datasets."""
   if args.chexpert:
-    precrop, crop = (340, 320)#vaguely approximating the ratio from bit
+    precrop, crop = (320, 320)#vaguely approximating the ratio from bit
   else:
     precrop, crop = bit_hyperrule.get_resolution_from_dataset(args.dataset)
 
@@ -111,7 +111,7 @@ def mktrainval(args, logger):
   
   train_tx = tv.transforms.Compose([
       tv.transforms.Resize((precrop, precrop)),
-      tv.transforms.RandomCrop((crop, crop)),
+      # tv.transforms.RandomCrop((crop, crop)),
       # tv.transforms.RandomHorizontalFlip(), #destroys semantic information
       tv.transforms.ToTensor(),
       tv.transforms.Normalize(mean,std),
@@ -207,7 +207,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, dataset):
   y_true = y_true.astype(int)
 
   accuracy = metrics.accuracy_score(y_true,y_pred)#I think this is exact matches
-  precision, recall, f1, support = metrics.precision_recall_fscore_support(y_true,y_pred)  #,labels=dataset.classes,average='macro' #this will raise warnings, if you want to turn off, add zero_division=0 or 1
+  precision, recall, f1, support = metrics.precision_recall_fscore_support(y_true,y_pred,labels=dataset.classes)  #,average='macro' #this will raise warnings, if you want to turn off, add zero_division=0 or 1
   hamming_mean_loss = metrics.hamming_loss(y_true,y_pred)
   jaccard_index = metrics.jaccard_score(y_true,y_pred,average='macro')
   average_precision = metrics.average_precision_score(y_true,y_pred,average='macro')
@@ -215,8 +215,8 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, dataset):
 
   #RocCurveDisplay.from_predictions(y_true,y_pred)
   # metrics.PrecisionRecallDisplay(precision,recall,pos_label=[what have you]
-  label_cardinality = np.mean(support)/len(dataset)
-  label_density = np.mean(support)/len(dataset)/len(dataset.classes)
+  label_cardinality = np.sum(support)/len(dataset)
+  label_density = np.sum(support)/len(dataset)/len(dataset.classes)
 
   logger.info(f"Validation@{step}, "
               f"Mean_loss={np.mean(loss)}, "
