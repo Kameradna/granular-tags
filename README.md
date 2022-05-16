@@ -47,7 +47,7 @@ Below this line is for more custom use cases, and requires further dependencies 
 
 To rerun the matrix_from_tags section, which transforms the negbio2 processed and classified final clean xml file into the target vectors and image mappings:
 ```shell
-python matrix_from_tags.py --xml_dir=$PWD/xml_reports/clean/all_together_all_topics.secsplit.ssplit.bllip.ud.chexpert-regex.neg2.negbio.xml --save_dir=splitsX --overwrite=True --map_file=$PWD/IU_xray_data/indiana_projections.csv --split 0.8 --min_unique_tags 0
+python matrix_from_tags.py --xml_dir=$PWD/xml_reports2/clean/all_together_find_ind.secsplit.ssplit.bllip.ud.chexpert-regex.neg2.negbio.xml --save_dir=splitsX --overwrite=True --map_file=$PWD/IU_xray_data/indiana_projections.csv --split 0.8 --min_unique_tags 0
 ```
 To rerun the full negbio pipeline would be very difficult and classically I have run into many dependency issues, but should you desire to do so, return to granular-tags directory and run:
 ```shell
