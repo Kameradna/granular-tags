@@ -299,6 +299,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, dataset):
 
   print(np.shape(y_true))
   print(np.shape(y_pred))
+  print(y_pred[700,5])
 
   accuracy = metrics.accuracy_score(y_true,y_pred)#I think this is exact matches
   precision, recall, f1, support = metrics.precision_recall_fscore_support(y_true,y_pred,labels=dataset.classes,average='macro')   #this will raise warnings, if you want to turn off, add zero_division=0 or 1
