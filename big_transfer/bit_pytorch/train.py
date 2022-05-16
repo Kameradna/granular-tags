@@ -200,23 +200,12 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
         TNn = torch.bitwise_and(torch.bitwise_not(groundtruth),torch.bitwise_not(preds)).cpu().numpy()
         FPn = torch.bitwise_and(torch.bitwise_not(groundtruth),preds).cpu().numpy()
 
-        print('before')
-        print(len(tp)) if isinstance(tp,type(np.ndarray)) else print('tp is not array yet')
-        tp = TPn if isinstance(tp, type(None)) else np.concatenate((tp,TPn))
-        print('after')
-        print(len(tp))
-        print(type(tp))
 
+        tp = TPn if isinstance(tp, type(None)) else np.concatenate((tp,TPn))
         fp = FPn if isinstance(fp, type(None)) else np.concatenate((fp,FPn))
         tn = TNn if isinstance(tn, type(None)) else np.concatenate((tn,TNn))
         fn = FNn if isinstance(fn, type(None)) else np.concatenate((fn,FNn))
 
-        # tp.append(TPn)
-        # fp.append(FPn)
-        # tn.append(TNn)
-        # fn.append(FNn)
-
-    # print(tp)
     tp_count = np.sum(tp,0)
     print(tp_count)
     fp_count = np.sum(fp,0)
