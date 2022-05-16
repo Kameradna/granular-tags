@@ -181,7 +181,7 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
   for label in range(len(pos_weights)):
     indices[label] = []
     area_by_label[label] = 0
-  resolution = 3
+  resolution = 10
   for sensitivity in np.linspace(0,1,resolution):#low def first
     print(f'Calculating for sensitivity {sensitivity}')
     tp, fp, tn, fn = [],[],[],[]
@@ -215,8 +215,6 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
     fn_count = np.sum(fn,0)
     print(fn_count)
 
-
-    print((tp_count + fn_count)[0])
     TPR = tp_count / (tp_count + fn_count)
     x = np.isnan(TPR)
     TPR[x] = 0
