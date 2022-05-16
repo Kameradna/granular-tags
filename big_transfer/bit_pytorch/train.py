@@ -327,7 +327,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, dataset):
         #   exact_match += 1
 
         y_true = groundtruth.cpu().numpy() if isinstance(y_true, type(None)) else np.concatenate((y_true,groundtruth.cpu().numpy()))
-        y_logits = logits.cpu().numpy() if isinstance(y_logits, type(None)) else np.concatenate((y_logits,logits).cpu().numpy())
+        y_logits = logits.cpu().numpy() if isinstance(y_logits, type(None)) else np.concatenate((y_logits,logits.cpu().numpy()))
 
         # TPn = np.sum(torch.bitwise_and(groundtruth,preds).cpu().numpy())
         # FNn = np.sum(torch.bitwise_and(groundtruth,torch.bitwise_not(preds)).cpu().numpy())
