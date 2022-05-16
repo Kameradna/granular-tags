@@ -228,6 +228,7 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
     for label in range(len(pos_weights)):
       indices[label].append((FPR[0][label],TPR[0][label]))
 
+  print(indices)
   for label in range(len(pos_weights)):
     for sensitivity in range(len(indices[label])):
       try:
