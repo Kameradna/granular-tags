@@ -357,7 +357,7 @@ def main(args):
           print("BIG MONEY BIG MONEY BIG MONEY BIG MONEY")
           best_mean_auc = mean_auc
           #delete last best save or use deepcopy()
-          savename = pjoin(args.logdir, f"{best_mean_auc}_{step}bit.pth.tar")
+          savename = pjoin(args.logdir, args.name, f"{best_mean_auc}_{step}bit.pth.tar")
           best_model_wts = copy.deepcopy(model.state_dict())
 
         # Run evaluation and save the model.
