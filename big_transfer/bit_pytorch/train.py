@@ -203,13 +203,13 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
         print(TPn)
         print('before')
         print(tp)
-        tp = TPn if isinstance(tp, type(None)) else tp.concat(TPn)
+        tp = TPn if isinstance(tp, type(None)) else np.concatenate(tp,TPn)
         print('after')
         print(tp)
 
-        fp = FPn if isinstance(fp, type(None)) else fp.concat(FPn)
-        tn = TNn if isinstance(tn, type(None)) else tn.concat(TNn)
-        fn = FNn if isinstance(fn, type(None)) else fn.concat(FNn)
+        fp = FPn if isinstance(fp, type(None)) else np.concatenate(fp,FPn)
+        tn = TNn if isinstance(tn, type(None)) else np.concatenate(tn,TNn)
+        fn = FNn if isinstance(fn, type(None)) else np.concatenate(fn,FNn)
 
         # tp.append(TPn)
         # fp.append(FPn)
