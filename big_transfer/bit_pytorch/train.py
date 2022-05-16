@@ -201,16 +201,20 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
         FPn = torch.bitwise_and(torch.bitwise_not(groundtruth),preds).cpu().numpy()
 
         print(TPn)
+        print('before')
         print(tp)
         tp = TPn if tp == None else tp.concat(TPn)
+        print('after')
         print(tp)
-        tp_count = np.sum(tp,0)#for testing
-        print(tp_count)#for testing
-        exit('Did that give me enough info?')
-        tp.append(TPn)
-        fp.append(FPn)
-        tn.append(TNn)
-        fn.append(FNn)
+
+        fp = FPn if fp == None else fp.concat(FPn)
+        tn = TNn if tn == None else tn.concat(TNn)
+        fn = FNn if fn == None else fn.concat(FNn)
+
+        # tp.append(TPn)
+        # fp.append(FPn)
+        # tn.append(TNn)
+        # fn.append(FNn)
 
     # print(tp)
     tp_count = np.sum(tp,0)
@@ -266,6 +270,7 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
   mean_auc = np.mean(list(area_by_label.values()))
   print(mean_auc)
   model.train()
+  exit("line 269, auc good?")
   return mean_auc
 
 def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights):
