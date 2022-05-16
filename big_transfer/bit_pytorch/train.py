@@ -101,17 +101,25 @@ def mktrainval(args, logger):
     precrop, crop = (340, 320)#vaguely approximating the ratio from bit
   else:
     precrop, crop = bit_hyperrule.get_resolution_from_dataset(args.dataset)
+
+  if args.pretrained == True:
+    mean=(0.485, 0.456, 0.406)
+    std=(0.229, 0.224, 0.225) #for any pretrained pytorch zoo models
+  else:
+    mean=(0.5, 0.5, 0.5)
+    std=(0.5, 0.5, 0.5)
+  
   train_tx = tv.transforms.Compose([
       tv.transforms.Resize((precrop, precrop)),
       tv.transforms.RandomCrop((crop, crop)),
       # tv.transforms.RandomHorizontalFlip(), #destroys semantic information
       tv.transforms.ToTensor(),
-      tv.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+      tv.transforms.Normalize(mean,std),
   ])
   val_tx = tv.transforms.Compose([
       tv.transforms.Resize((crop, crop)),
       tv.transforms.ToTensor(),
-      tv.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+      tv.transforms.Normalize(mean,std),
   ])
 
   if args.dataset == "cifar10":
@@ -244,12 +252,15 @@ def main(args):
   train_set, valid_set, train_loader, valid_loader = mktrainval(args, logger)
   
   if args.chexpert:
-    model = pymodels.densenet121(pretrained=False)
+    if args.pretrained == True:
+      model = pymodels.densenet121(pretrained=True)
+    elif args.pretrained == False:
+      model = pymodels.densenet121(pretrained=False)
     # Here the size of each output sample is set to 2.
     # Alternatively, it can be generalized to nn.Linear(num_ftrs, len(class_names)).
     num_features = model.classifier.in_features
     model.classifier = nn.Linear(num_features, len(valid_set.classes))
-    #normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) for any pretrained pytorch zoo models
+    
   elif args.chexpert == False:
     logger.info(f"Loading model from {args.model}.npz")
     model = models.KNOWN_MODELS[args.model](head_size=len(valid_set.classes), zero_head=True)
@@ -394,4 +405,5 @@ if __name__ == "__main__":
   #                    help="Use Automated Mixed Precision to save potential memory and compute?")
   parser.add_argument("--annodir", required=True, help="Where are the annotation files to load?")
   parser.add_argument("--chexpert", dest="chexpert", action="store_true",help="Run as the chexpert paper?")
+  parser.add_argument("--pretrained", dest="pretrained", action="store_true",help="Do you want a pretrained network?")
   main(parser.parse_args())
