@@ -30,7 +30,7 @@ from torch.utils.data import Dataset
 import bit_pytorch.fewshot as fs
 import bit_pytorch.lbtoolbox as lb
 import bit_pytorch.models as models
-from sklearn.metrics import hamming_loss, jaccard_score
+from sklearn import metrics
 
 import bit_common
 import bit_hyperrule
@@ -174,12 +174,12 @@ def area_under_points(pt1,pt2):#pt2 is larger than pt1 in both dims, so area alw
   area = (y1+(y2-y1)/2)*(x2-x1) if x2-x1 > 0 else 0
   return area
 
-def AUC(model,data_loader,device,args,step,pos_weights):#mine
+def AUC(model,data_loader,device,args,step,dataset):#mine
   model.eval()
   indices = {}
   area_by_label = {}
   dead_flag = 0
-  for label in range(len(pos_weights)):
+  for label in range(len(dataset.classes)):
     indices[label] = []
     area_by_label[label] = 0
   resolution = 10
@@ -250,11 +250,11 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
     x = np.isnan(FPR)
     FPR[x] = 0
     print(FPR)
-    for label in range(len(pos_weights)):
+    for label in range(len(dataset.classes)):
       indices[label].append((FPR[label],TPR[label]))
 
   print(indices)
-  for label in range(len(pos_weights)):
+  for label in range(len(dataset.classes)):
     for sensitivity in range(len(indices[label])):
       try:
         pt2 = indices[label][sensitivity-1]#at sensitivity == 0, (really sensitivity at 0) then the precision and FPR should be 0,0
@@ -271,7 +271,7 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
   exit("line 269, auc good, especially with the early termination?")
   return mean_auc
 
-def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights):
+def run_eval(model, data_loader, device, chrono, logger, args, step, dataset):
   # switch to evaluate mode
   model.eval()
 
@@ -299,6 +299,8 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights
   loss = []
 
   end = time.time()
+
+  y_true, y_pred = None, None
   for b, (x, y) in enumerate(data_loader):#should be elements of size 1,len(tags)
     with torch.no_grad():
       x = x.to(device, non_blocking=True)
@@ -314,78 +316,75 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights
         # print(y)
         logits.clamp_(0,1)
         c = torch.nn.BCELoss()(logits, y)
-        #pos_weight=torch.Tensor(pos_weights).to(device)
+        #pos_weight=torch.Tensor().to(device)
         #we need to compare logits and y
         sensitivity = 0.5
         sens_tensor = torch.full(logits.size(),sensitivity).to(device, non_blocking=True)
 
-        preds = torch.ge(logits,sens_tensor)
+        # preds = torch.ge(logits,sens_tensor)
         groundtruth = torch.ge(y,0.5)#translates y to tensor
-        if torch.equal(preds,groundtruth):
-          exact_match += 1
+        # if torch.equal(preds,groundtruth):
+        #   exact_match += 1
 
-        TPn = np.sum(torch.bitwise_and(groundtruth,preds).cpu().numpy())
-        FNn = np.sum(torch.bitwise_and(groundtruth,torch.bitwise_not(preds)).cpu().numpy())
-        TNn = np.sum(torch.bitwise_and(torch.bitwise_not(groundtruth),torch.bitwise_not(preds)).cpu().numpy())
-        FPn = np.sum(torch.bitwise_and(torch.bitwise_not(groundtruth),preds).cpu().numpy())
+        y_true = groundtruth.cpu().numpy() if isinstance(y_true, type(None)) else np.concatenate((y_true,groundtruth.cpu().numpy()))
+        y_logits = logits.cpu().numpy() if isinstance(y_logits, type(None)) else np.concatenate((y_logits,logits).cpu().numpy())
 
-        tp.append(TPn)
-        fp.append(FPn)
-        tn.append(TNn)
-        fn.append(FNn)
+        # TPn = np.sum(torch.bitwise_and(groundtruth,preds).cpu().numpy())
+        # FNn = np.sum(torch.bitwise_and(groundtruth,torch.bitwise_not(preds)).cpu().numpy())
+        # TNn = np.sum(torch.bitwise_and(torch.bitwise_not(groundtruth),torch.bitwise_not(preds)).cpu().numpy())
+        # FPn = np.sum(torch.bitwise_and(torch.bitwise_not(groundtruth),preds).cpu().numpy())
 
-        loss.append(c.cpu().numpy())
+        # tp.append(TPn)
+        # fp.append(FPn)
+        # tn.append(TNn)
+        # fn.append(FNn)
 
-        labelsum.append(np.sum(groundtruth.cpu().numpy()))#summing all positive labels for each sample
-        label_number = len(groundtruth.cpu().numpy()[0])
-        hamming.append(hamming_loss(groundtruth.cpu().numpy(),preds.cpu().numpy()))#list of the hamming losses per sample
-        groundtruthlist.append(groundtruth.cpu().numpy())
-        predslist.append(preds.cpu().numpy())
+        # loss.append(c.cpu().numpy())
+
+        # labelsum.append(np.sum(groundtruth.cpu().numpy()))#summing all positive labels for each sample
+        # label_number = len(groundtruth.cpu().numpy()[0])
+        # hamming.append(hamming_loss(groundtruth.cpu().numpy(),preds.cpu().numpy()))#list of the hamming losses per sample
+        # groundtruthlist.append(groundtruth.cpu().numpy())
+        # predslist.append(preds.cpu().numpy())
         
     # measure elapsed time
     end = time.time()
 
-  tp_count = np.sum(tp)#sum across all samples
-  print(tp_count)
-  fp_count = np.sum(fp)
-  print(fp_count)
-  tn_count = np.sum(tn)
-  print(tn_count)
-  fn_count = np.sum(fn)
-  print(fn_count)
+  # tp_count = np.sum(tp)#sum across all samples
+  # print(tp_count)
+  # fp_count = np.sum(fp)
+  # print(fp_count)
+  # tn_count = np.sum(tn)
+  # print(tn_count)
+  # fn_count = np.sum(fn)
+  # print(fn_count)
 
-  #all the normal formulas, now on the sum of all tp and tn etc over all samples
-  precision = tp_count/(tp_count+fp_count)
-  recall = tp_count/(tp_count+fn_count)
-  accuracy = (tp_count+tn_count)/(tp_count+fp_count+tn_count+fn_count)
-  f1 = 2*(precision*recall)/(precision+recall)
-  specificity = tn_count/(tn_count+fp_count)
-  balanced_accuracy = (recall+specificity)/2
+  # #all the normal formulas, now on the sum of all tp and tn etc over all samples
+  # precision = tp_count/(tp_count+fp_count)
+  # recall = tp_count/(tp_count+fn_count)
+  # accuracy = (tp_count+tn_count)/(tp_count+fp_count+tn_count+fn_count)
+  # f1 = 2*(precision*recall)/(precision+recall)
+  # specificity = tn_count/(tn_count+fp_count)
+  # balanced_accuracy = (recall+specificity)/2
 
-  # print(labelsum)
-  # print(len(labelsum))
-  label_cardinality = np.mean(labelsum)#labelnosum has len [validset] like it should
-  # print(label_number)
-  label_density = label_cardinality/label_number #correct
-  # print(hamming)
-  # print(len(hamming))
-  hamming_mean_loss = np.mean(hamming)
-  # jaccard_index = jaccard_score(groundtruthlist,predslist)
-  # hamming_new = hamming_loss(groundtruthlist,predslist)
-  # print(f'New hamming {hamming_new}')
-  # exact_match = exact_match/len(tp_count)
+  # label_cardinality = np.mean(labelsum)#labelnosum has len [validset] like it should
+  # label_density = label_cardinality/label_number #correct
+  # hamming_mean_loss = np.mean(hamming)
+  # # jaccard_index = jaccard_score(groundtruthlist,predslist)
+  # naive_accuracy = 1-label_density
+  # adjusted_accuracy = (accuracy - naive_accuracy)/(1-naive_accuracy)
 
-  # print(label_density)
-  naive_accuracy = 1-label_density
-  # print(naive_accuracy)
-  #mapping accuracy onto 0:1 for naive_accuracy:1
-  adjusted_accuracy = (accuracy - naive_accuracy)/(1-naive_accuracy)
-  # print(adjusted_accuracy)
 
-  datastack = np.stack((precision,recall,accuracy,f1,specificity,balanced_accuracy),axis=-1)
-  print('precision,recall,accuracy,f1,specificity,balanced_accuracy')
-  print(datastack)
-  print(np.mean(loss))
+  # datastack = np.stack((precision,recall,accuracy,f1,specificity,balanced_accuracy),axis=-1)
+  # print('precision,recall,accuracy,f1,specificity,balanced_accuracy')
+  # print(datastack)
+  # print(np.mean(loss))
+
+  auroc = metrics.roc_auc_score(y_true,y_logits,average=None,labels=dataset.classes)#should we pass in labels?
+  print(auroc)
+  print(np.mean(auroc))
+
+  exit("WoW, line 387, do we need to specify any other params?")
 
   logger.info(f"Validation@{step}, "
               f"Mean_loss={np.mean(loss)}, "
@@ -490,7 +489,7 @@ def main(args):
   end = time.time()
 
   step_name = '0'
-  # run_eval(model, valid_loader, device, chrono, logger, args, step_name, train_set.pos_weights)
+  run_eval(model, valid_loader, device, chrono, logger, args, step_name, valid_set)
 
 
   with lb.Uninterrupt() as u:
@@ -554,7 +553,7 @@ def main(args):
         # Sample new mixup ratio for next batch
         # mixup_l = np.random.beta(mixup, mixup) if mixup > 0 else 1
 
-        mean_auc = AUC(model,valid_loader,device,args,step,valid_set.pos_weights)
+        mean_auc = AUC(model,valid_loader,device,args,step,valid_set)
         if mean_auc > best_mean_auc:
           print("BIG MONEY BIG MONEY BIG MONEY BIG MONEY")
           best_mean_auc = mean_auc
@@ -564,7 +563,7 @@ def main(args):
 
         # Run evaluation and save the model.
         if args.eval_every and step % args.eval_every == 0:
-          run_eval(model, valid_loader, device, chrono, logger, args, step, train_set.pos_weights)
+          run_eval(model, valid_loader, device, chrono, logger, args, step, valid_set)
           #save best AUC
           if args.save:
             quicksave_model = copy.deepcopy(model.state_dict())
@@ -582,7 +581,7 @@ def main(args):
 
     # Final eval at end of training.
     step_name = 'end'
-    run_eval(model, valid_loader, device, chrono, logger, args, step_name, train_set.pos_weights)
+    run_eval(model, valid_loader, device, chrono, logger, args, step_name, valid_set)
 
   logger.info(f"Timings:\n{chrono}")
 
