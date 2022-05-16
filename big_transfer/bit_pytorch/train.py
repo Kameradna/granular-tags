@@ -277,30 +277,9 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, dataset):
 
   logger.info("Running validation...")
   logger.flush()
-  
-#we will add hamming loss, total full correct loss
-#%above 50% correct
-#True positive rate
-#False negative rates
-#True negative rate
-#False negative rate
-#we want to maximise the correct, so we want to maximise true positive at the expense of false positive, we just want to minimize false negative rate
-
-  first_batch = True
-  exact_match = 0
-  hamming = []
-  groundtruthlist = []
-  predslist = []
-  labelsum = []
-  tp = []
-  fp = []
-  tn = []
-  fn = []
-  loss = []
-
   end = time.time()
 
-  y_true, y_logits = None, None
+  y_true, y_logits, loss = None, None, None
   for b, (x, y) in enumerate(data_loader):#should be elements of size 1,len(tags)
     with torch.no_grad():
       x = x.to(device, non_blocking=True)
@@ -308,104 +287,54 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, dataset):
 
       # measure data loading time
       chrono._done("eval load", time.time() - end)
-
-      # compute output, measure accuracy and record loss.
       with chrono.measure("eval fprop"):
         logits = model(x)
-        # print(logits)
-        # print(y)
         logits.clamp_(0,1)
         c = torch.nn.BCELoss()(logits, y)
-        #pos_weight=torch.Tensor().to(device)
-        #we need to compare logits and y
-        sensitivity = 0.5
-        sens_tensor = torch.full(logits.size(),sensitivity).to(device, non_blocking=True)
 
-        # preds = torch.ge(logits,sens_tensor)
         groundtruth = torch.ge(y,0.5)#translates y to tensor
-        # if torch.equal(preds,groundtruth):
-        #   exact_match += 1
-
         y_true = groundtruth.cpu().numpy() if isinstance(y_true, type(None)) else np.concatenate((y_true,groundtruth.cpu().numpy()))
         y_logits = logits.cpu().numpy() if isinstance(y_logits, type(None)) else np.concatenate((y_logits,logits.cpu().numpy()))
+        loss = c.cpu().numpy() if isinstance(loss, type(None)) else np.concatenate((loss,c.cpu().numpy()))
 
-        # TPn = np.sum(torch.bitwise_and(groundtruth,preds).cpu().numpy())
-        # FNn = np.sum(torch.bitwise_and(groundtruth,torch.bitwise_not(preds)).cpu().numpy())
-        # TNn = np.sum(torch.bitwise_and(torch.bitwise_not(groundtruth),torch.bitwise_not(preds)).cpu().numpy())
-        # FPn = np.sum(torch.bitwise_and(torch.bitwise_not(groundtruth),preds).cpu().numpy())
-
-        # tp.append(TPn)
-        # fp.append(FPn)
-        # tn.append(TNn)
-        # fn.append(FNn)
-
-        # loss.append(c.cpu().numpy())
-
-        # labelsum.append(np.sum(groundtruth.cpu().numpy()))#summing all positive labels for each sample
-        # label_number = len(groundtruth.cpu().numpy()[0])
-        # hamming.append(hamming_loss(groundtruth.cpu().numpy(),preds.cpu().numpy()))#list of the hamming losses per sample
-        # groundtruthlist.append(groundtruth.cpu().numpy())
-        # predslist.append(preds.cpu().numpy())
-        
     # measure elapsed time
     end = time.time()
-
-  # tp_count = np.sum(tp)#sum across all samples
-  # print(tp_count)
-  # fp_count = np.sum(fp)
-  # print(fp_count)
-  # tn_count = np.sum(tn)
-  # print(tn_count)
-  # fn_count = np.sum(fn)
-  # print(fn_count)
-
-  # #all the normal formulas, now on the sum of all tp and tn etc over all samples
-  # precision = tp_count/(tp_count+fp_count)
-  # recall = tp_count/(tp_count+fn_count)
-  # accuracy = (tp_count+tn_count)/(tp_count+fp_count+tn_count+fn_count)
-  # f1 = 2*(precision*recall)/(precision+recall)
-  # specificity = tn_count/(tn_count+fp_count)
-  # balanced_accuracy = (recall+specificity)/2
-
-  # label_cardinality = np.mean(labelsum)#labelnosum has len [validset] like it should
-  # label_density = label_cardinality/label_number #correct
-  # hamming_mean_loss = np.mean(hamming)
-  # # jaccard_index = jaccard_score(groundtruthlist,predslist)
-  # naive_accuracy = 1-label_density
-  # adjusted_accuracy = (accuracy - naive_accuracy)/(1-naive_accuracy)
-
-
-  # datastack = np.stack((precision,recall,accuracy,f1,specificity,balanced_accuracy),axis=-1)
-  # print('precision,recall,accuracy,f1,specificity,balanced_accuracy')
-  # print(datastack)
-  # print(np.mean(loss))
-
+  
+  loss = np.sum(loss)
   auroc = metrics.roc_auc_score(y_true,y_logits,average=None,labels=dataset.classes)#should we pass in labels?
-  print(auroc)
-  print(np.mean(auroc))
+  y_pred = y_logits > 0.5
 
-  exit("WoW, line 387, do we need to specify any other params?")
+  accuracy = metrics.accuracy_score(y_true,y_pred)#I think this is exact matches
+  precision, recall, f1, support = metrics.precision_recall_fscore_support(y_true,y_pred,labels=dataset.classes,average='macro')   #this will raise warnings, if you want to turn off, add zero_division=0 or 1
+  hamming_mean_loss = metrics.hamming_loss(y_true,y_pred)
+  jaccard_index = metrics.jaccard_score(y_true,y_pred,average='macro')
+  average_precision = metrics.average_precision_score(y_true,y_pred,average='macro')
+  #Area under precision recall curve
+
+  #RocCurveDisplay.from_predictions(y_true,y_pred)
+  # metrics.PrecisionRecallDisplay(precision,recall,pos_label=[what have you]
+  label_cardinality = np.mean(support)/len(dataset)
+  label_density = np.mean(support)/len(dataset)/len(dataset.classes)
 
   logger.info(f"Validation@{step}, "
               f"Mean_loss={np.mean(loss)}, "
-              f"Mean_precision={precision:.2%}, "
-              f"Mean_recall={recall:.2%}, "
-              f"Mean_accuracy={accuracy:.2%}, "
-              f"Mean_specificity={specificity:.2%}, "
-              f"Mean_balanced_accuracy={balanced_accuracy:.2%}, "
-              f"Mean_F1 score={f1:.2%}, "
+              f"Mean_precision={np.mean(precision):.2%}, "
+              f"Mean_recall={np.mean(recall):.2%}, "
+              f"Mean_accuracy={np.mean(accuracy):.2%}, "
+              f"Mean_F1 score={np.mean(f1):.2%}, "
 
+              f"AUROC={np.mean(auroc):.5f}, "
+              f"AUPRC={average_precision:.5f}, "
               f"Label_cardinality={label_cardinality:.2f}, "
               f"Label_density={label_density:.2%}, "
-              f"Naive_accuracy={naive_accuracy:.2%},"
+              f"Naive_accuracy={1-label_density:.2%},"
               f"Hamming_loss={hamming_mean_loss:.2%}, "
-              # f"Jaccard index {jaccard_index:.2%}, "
-              f"Adjusted_accuracy={adjusted_accuracy:.2%}, "
-              f"Exact_match={exact_match:.1f}"
+              f"Jaccard_index={jaccard_index:.2%}, "
+              f"Support={np.mean(support):.2f}\n"
               )
   logger.flush()
   model.train()
-  return 0
+  return np.mean(auroc)
 
 
 # def mixup_data(x, y, l):
