@@ -200,14 +200,11 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
         TNn = torch.bitwise_and(torch.bitwise_not(groundtruth),torch.bitwise_not(preds)).cpu().numpy()
         FPn = torch.bitwise_and(torch.bitwise_not(groundtruth),preds).cpu().numpy()
 
-        print(TPn)
         print('before')
-        print(tp)
-        print(type(tp))
+        print(len(tp))
         tp = TPn if isinstance(tp, type(None)) else np.concatenate((tp,TPn))
         print('after')
-        print(tp)
-        type(tp)
+        print(len(tp))
 
         fp = FPn if isinstance(fp, type(None)) else np.concatenate((fp,FPn))
         tn = TNn if isinstance(tn, type(None)) else np.concatenate((tn,TNn))
@@ -249,13 +246,13 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
     TPR = tp_count / (tp_count + fn_count)
     x = np.isnan(TPR)
     TPR[x] = 0
-    print(TPR[0])
+    print(TPR)
     FPR = fp_count / (fp_count + tn_count)
     x = np.isnan(FPR)
     FPR[x] = 0
-    print(FPR[0])
+    print(FPR)
     for label in range(len(pos_weights)):
-      indices[label].append((FPR[0][label],TPR[0][label]))
+      indices[label].append((FPR[label],TPR[label]))
 
   print(indices)
   for label in range(len(pos_weights)):
