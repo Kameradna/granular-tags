@@ -89,15 +89,6 @@ class IUXrayDataset(Dataset):#Adapted from NUSdataset and my own work
   def __len__(self):
       return len(self.imgs)
 
-
-# def topk(output, target, ks=(1,)):
-#   """Returns one boolean vector for each k, whether the target is within the output's top-k."""
-#   _, pred = output.topk(max(ks), 1, True, True)
-#   pred = pred.t()
-#   correct = pred.eq(target.view(1, -1).expand_as(pred))
-#   return [correct[:k].max(0)[0] for k in ks]
-
-
 def recycle(iterable):
   """Variant of itertools.cycle that does not save iterates."""
   while True:
@@ -295,7 +286,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, dataset):
         groundtruth = torch.ge(y,0.5)#translates y to tensor
         y_true = groundtruth.cpu().numpy() if isinstance(y_true, type(None)) else np.concatenate((y_true,groundtruth.cpu().numpy()))
         y_logits = logits.cpu().numpy() if isinstance(y_logits, type(None)) else np.concatenate((y_logits,logits.cpu().numpy()))
-        loss = c.cpu().numpy() if isinstance(loss, type(None)) else np.concatenate((loss,c.cpu().numpy()))
+        loss = c.item().cpu().numpy() if isinstance(loss, type(None)) else np.concatenate((loss,c.cpu().numpy()))
 
     # measure elapsed time
     end = time.time()
