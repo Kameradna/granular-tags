@@ -203,9 +203,11 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
         print(TPn)
         print('before')
         print(tp)
+        type(tp)
         tp = TPn if isinstance(tp, type(None)) else np.concatenate(tp,TPn)
         print('after')
         print(tp)
+        type(tp)
 
         fp = FPn if isinstance(fp, type(None)) else np.concatenate(fp,FPn)
         tn = TNn if isinstance(tn, type(None)) else np.concatenate(tn,TNn)
