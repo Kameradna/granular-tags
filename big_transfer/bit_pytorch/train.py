@@ -232,7 +232,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, dataset):
               f"Naive_accuracy={1-label_density:.2%},"
               f"Hamming_loss={hamming_mean_loss:.2%}, "
               f"Jaccard_index={jaccard_index:.2%}, "
-              f"Support={np.sum(support):.2f}\n"
+              f"Support={np.mean(support):.2f}\n"
               )
   logger.flush()
   model.train()
