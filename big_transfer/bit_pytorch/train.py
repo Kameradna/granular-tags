@@ -302,7 +302,7 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, dataset):
   y_true = y_true.astype(int)
 
   accuracy = metrics.accuracy_score(y_true,y_pred)#I think this is exact matches
-  precision, recall, f1, support = metrics.precision_recall_fscore_support(y_true,y_pred,labels=dataset.classes,average='macro')   #this will raise warnings, if you want to turn off, add zero_division=0 or 1
+  precision, recall, f1, support = metrics.precision_recall_fscore_support(y_true,y_pred)  #,labels=dataset.classes,average='macro' #this will raise warnings, if you want to turn off, add zero_division=0 or 1
   hamming_mean_loss = metrics.hamming_loss(y_true,y_pred)
   jaccard_index = metrics.jaccard_score(y_true,y_pred,average='macro')
   average_precision = metrics.average_precision_score(y_true,y_pred,average='macro')
