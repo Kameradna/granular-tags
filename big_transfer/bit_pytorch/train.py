@@ -184,7 +184,7 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
   resolution = 10
   for sensitivity in np.linspace(0,1,resolution):#low def first
     print(f'Calculating for sensitivity {sensitivity}')
-    tp, fp, tn, fn = [],[],[],[]
+    tp, fp, tn, fn = None,[],[],[]
     for b, (x, y) in enumerate(data_loader):#should be elements of size 1,len(tags)
       with torch.no_grad():
         x = x.to(device, non_blocking=True)
@@ -200,6 +200,13 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
         TNn = torch.bitwise_and(torch.bitwise_not(groundtruth),torch.bitwise_not(preds)).cpu().numpy()
         FPn = torch.bitwise_and(torch.bitwise_not(groundtruth),preds).cpu().numpy()
 
+        print(TPn)
+        print(tp)
+        tp = TPn if tp == None else tp.concat(TPn)
+        print(tp)
+        tp_count = np.sum(tp,0)#for testing
+        print(tp_count)#for testing
+        exit('Did that give me enough info?')
         tp.append(TPn)
         fp.append(FPn)
         tn.append(TNn)
@@ -216,9 +223,17 @@ def AUC(model,data_loader,device,args,step,pos_weights):#mine
     print(fn_count)
 
     precision = tp_count/(tp_count+fp_count)
+    x = np.isnan(precision)
+    precision[x] = 0
     recall = tp_count/(tp_count+fn_count)
+    x = np.isnan(recall)
+    recall[x] = 0
     accuracy = (tp_count+tn_count)/(tp_count+fp_count+tn_count+fn_count)
+    x = np.isnan(accuracy)
+    accuracy[x] = 0
     f1 = 2*(precision*recall)/(precision+recall)
+    x = np.isnan(f1)
+    f1[x] = 0
 
     print(f'precision={precision}')
     print(f'recall={recall}')
