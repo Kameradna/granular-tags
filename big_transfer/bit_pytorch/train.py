@@ -409,17 +409,17 @@ def run_eval(model, data_loader, device, chrono, logger, args, step, pos_weights
   return 0
 
 
-def mixup_data(x, y, l):
-  """Returns mixed inputs, pairs of targets, and lambda"""
-  indices = torch.randperm(x.shape[0]).to(x.device)
+# def mixup_data(x, y, l):
+#   """Returns mixed inputs, pairs of targets, and lambda"""
+#   indices = torch.randperm(x.shape[0]).to(x.device)
 
-  mixed_x = l * x + (1 - l) * x[indices]
-  y_a, y_b = y, y[indices]
-  return mixed_x, y_a, y_b
+#   mixed_x = l * x + (1 - l) * x[indices]
+#   y_a, y_b = y, y[indices]
+#   return mixed_x, y_a, y_b
 
 
-def mixup_criterion(criterion, pred, y_a, y_b, l):
-  return l * criterion(pred, y_a) + (1 - l) * criterion(pred, y_b)
+# def mixup_criterion(criterion, pred, y_a, y_b, l):
+#   return l * criterion(pred, y_a) + (1 - l) * criterion(pred, y_b)
 
 
 def main(args):
@@ -480,13 +480,13 @@ def main(args):
   optim.zero_grad()
 
   model.train()
-  mixup = bit_hyperrule.get_mixup(len(train_set))
+  # mixup = bit_hyperrule.get_mixup(len(train_set))
   cri = torch.nn.BCELoss().to(device) #pos_weight=torch.Tensor(train_set.pos_weights)
 
   logger.info("Starting training!")
   chrono = lb.Chrono()
   accum_steps = 0
-  mixup_l = np.random.beta(mixup, mixup) if mixup > 0 else 1
+  # mixup_l = np.random.beta(mixup, mixup) if mixup > 0 else 1
   end = time.time()
 
   step_name = '0'
@@ -519,17 +519,17 @@ def main(args):
         if step > 3*len(train_set)/args.batch:
           break
 
-      if mixup > 0.0:
-        x, y_a, y_b = mixup_data(x, y, mixup_l)
+      # if mixup > 0.0:
+      #   x, y_a, y_b = mixup_data(x, y, mixup_l)
 
       # compute output
       with chrono.measure("fprop"):
         logits = model(x)
         logits.clamp_(0,1)
-        if mixup > 0.0:
-          c = mixup_criterion(cri, logits, y_a, y_b, mixup_l)
-        else:
-          c = cri(logits, y)
+        # if mixup > 0.0:
+        #   c = mixup_criterion(cri, logits, y_a, y_b, mixup_l)
+        # else:
+        c = cri(logits, y)
         c_num = float(c.data.cpu().numpy()) # Also ensures a sync point.
 
       # Accumulate grads
@@ -552,7 +552,7 @@ def main(args):
         step += 1
         accum_steps = 0
         # Sample new mixup ratio for next batch
-        mixup_l = np.random.beta(mixup, mixup) if mixup > 0 else 1
+        # mixup_l = np.random.beta(mixup, mixup) if mixup > 0 else 1
 
         mean_auc = AUC(model,valid_loader,device,args,step,valid_set.pos_weights)
         if mean_auc > best_mean_auc:
