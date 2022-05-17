@@ -251,6 +251,7 @@ def main(args):
 
   train_set, valid_set, train_loader, valid_loader = mktrainval(args, logger)
   
+
   if args.chexpert:
     if args.pretrained == True:
       model = pymodels.densenet121(pretrained=True)
@@ -333,7 +334,7 @@ def main(args):
         for param_group in optim.param_groups:
           param_group["lr"] = lr
       elif args.chexpert:
-        lr = 0.0001
+        lr = args.base_lr
         if step > 3*len(train_set)/args.batch:
           break
 
