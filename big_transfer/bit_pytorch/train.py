@@ -363,17 +363,18 @@ def main(args):
         step += 1
         accum_steps = 0
 
-        mean_auc = run_eval(model, valid_loader, device, chrono, logger, args, step, valid_set)
-        if mean_auc > best_mean_auc:
-          print("BIG MONEY BIG MONEY BIG MONEY BIG MONEY")
-          best_mean_auc = mean_auc
-          #delete last best save or use deepcopy()
-          savename = pjoin(args.logdir, args.name, f"{best_mean_auc}_{step}bit.pth.tar")
-          best_model_wts = copy.deepcopy(model.state_dict())
+        #eval every?
 
         # Run evaluation and save the model.
         if args.eval_every and step % args.eval_every == 0:
           #save best AUC
+          mean_auc = run_eval(model, valid_loader, device, chrono, logger, args, step, valid_set)
+          if mean_auc > best_mean_auc:
+            print("BIG MONEY BIG MONEY BIG MONEY BIG MONEY")
+            best_mean_auc = mean_auc
+            #delete last best save or use deepcopy()
+            savename = pjoin(args.logdir, args.name, f"{best_mean_auc}_{step}bit.pth.tar")
+            best_model_wts = copy.deepcopy(model.state_dict())
           if args.save:
             quicksave_model = copy.deepcopy(model.state_dict())
             model.load_state_dict(best_model_wts)
