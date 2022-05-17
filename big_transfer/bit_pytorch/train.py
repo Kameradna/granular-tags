@@ -335,7 +335,7 @@ def main(args):
           param_group["lr"] = lr
       elif args.chexpert:
         lr = args.base_lr
-        if step > 3*len(train_set)/args.batch:
+        if step > 30*len(train_set)/args.batch:
           break
 
       with chrono.measure("fprop"):
